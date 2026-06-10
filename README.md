@@ -1,5 +1,11 @@
 # init-claude
 
+[![Version](https://img.shields.io/badge/version-13.0.0-blue?style=flat-square)](https://github.com/episuarez/initialiser/releases)
+[![License](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-orange?style=flat-square)](./LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](https://nodejs.org)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078d4?style=flat-square&logo=windows)]()
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet?style=flat-square)](https://claude.ai/code)
+
 **One command to set up Claude Code the right way — in any project.**
 
 init-claude is a CLI/TUI tool that scans your project, detects its profile (languages, frameworks, size, docs, design files, CI), and walks you through installing exactly the Claude Code components, MCP servers, and project skills that make sense for it. No config files to write. No docs to read. Just run it and pick what you want.
