@@ -1,0 +1,43 @@
+MIT License with Commons Clause
+
+Copyright (c) 2026 Epifanio Suárez Martínez
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, publish, and distribute copies of the Software, subject
+to the following conditions:
+
+1. ATTRIBUTION REQUIRED
+   Any distribution, fork, or derivative work — whether public or private —
+   must retain this copyright notice, the above authorship credit, and a
+   clearly visible reference to the original project:
+   https://github.com/episuarez/initialiser
+
+2. COMMONS CLAUSE — COMMERCIAL RESTRICTION
+   The rights granted above do not include the right to sell the Software or
+   any substantial portion of it as a standalone product or hosted service.
+   "Sell" means offering the Software, or a product that substantially derives
+   from it, to third parties for a fee or commercial advantage.
+
+   If you wish to use the Software for commercial purposes — including but not
+   limited to SaaS products, paid tools, enterprise distribution, or white-label
+   offerings — you must obtain a separate commercial license from the copyright
+   holder (episuarez@gmail.com). Revenue-sharing arrangements may be negotiated
+   under such a license.
+
+3. NON-COMMERCIAL USE
+   Personal use, open-source projects, internal company tooling (not sold to
+   third parties), educational use, and research are permitted without charge
+   or additional agreement, provided condition 1 (attribution) is met.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+---
+
+For commercial licensing inquiries: episuarez@gmail.com

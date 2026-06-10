@@ -1,0 +1,12 @@
+{
+  "name": "init-claude",
+  "version": "13.0.0",
+  "description": "Inicializador inteligente de Claude Code: detecta el perfil del proyecto, recomienda e instala componentes, MCPs y skills.",
+  "type": "module",
+  "bin": { "init-claude": "./bin/init-claude.mjs" },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "picocolors": "^1.0.0"
+  }
+}

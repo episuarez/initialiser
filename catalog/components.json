@@ -1,0 +1,146 @@
+{
+  "$comment": "Catalogo de componentes. Añadir/editar aqui, sin tocar codigo. recommendIf: tags del perfil (OR). alwaysOn: recomendado siempre. group: agrupacion en el wizard.",
+  "components": [
+    {
+      "id": "context-mode",
+      "name": "context-mode",
+      "group": "Core",
+      "desc": "Memoria de sesion + sandbox de tool outputs (98% ahorro con plugin). Esencial.",
+      "alwaysOn": true,
+      "install": { "type": "npm", "pkg": "context-mode" },
+      "mcp": { "name": "context-mode", "cmd": "npx -y context-mode" },
+      "claudemd": "- `context-mode`: memoria de sesion. Antes de re-leer: `ctx_search`. Outputs grandes: `ctx_execute`/`ctx_batch_execute`/`ctx_fetch_and_index`."
+    },
+    {
+      "id": "sequential-thinking",
+      "name": "sequential-thinking",
+      "group": "Core",
+      "desc": "Razonamiento estructurado para diseno/arquitectura. 1 tool, overhead minimo.",
+      "alwaysOn": true,
+      "install": null,
+      "mcp": { "name": "sequential-thinking", "cmd": "npx -y @modelcontextprotocol/server-sequential-thinking" },
+      "claudemd": "- `sequential-thinking`: diseno o arquitectura no trivial."
+    },
+    {
+      "id": "code-review-graph",
+      "name": "code-review-graph",
+      "group": "Analisis",
+      "desc": "Grafo del codebase: impacto de cambios, busqueda. Util con 50+ archivos.",
+      "recommendIf": ["medium", "large"],
+      "install": { "type": "pipx", "pkg": "code-review-graph", "post": "code-review-graph install --platform claude-code" },
+      "mcp": null,
+      "claudemd": "- `code-review-graph`: impacto de cambios multi-archivo (get_impact_radius_tool, detect_changes_tool, query_graph_tool)."
+    },
+    {
+      "id": "serena",
+      "name": "serena",
+      "group": "Analisis",
+      "desc": "LSP semantico: go-to-definition, find-references precisos. ~20 tools.",
+      "recommendIf": ["javascript", "python", "csharp"],
+      "install": null,
+      "requires": ["uv"],
+      "mcp": { "name": "serena", "cmd": "uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant" },
+      "claudemd": "- `serena`: busqueda semantica y go-to-definition precisa."
+    },
+    {
+      "id": "playwright",
+      "name": "playwright",
+      "group": "Web",
+      "desc": "Browser automation, scraping, testing E2E. ~25 tools.",
+      "recommendIf": ["frontend", "e2e"],
+      "install": null,
+      "mcp": { "name": "playwright", "cmd": "npx -y @playwright/mcp" },
+      "claudemd": "- `playwright`: browser automation, scraping, E2E."
+    },
+    {
+      "id": "context7",
+      "name": "context7",
+      "group": "Web",
+      "desc": "Docs actualizadas de librerias (React, Next, FastAPI...). 2 tools.",
+      "recommendIf": ["frontend", "backend-node", "backend-python"],
+      "install": null,
+      "mcp": { "name": "context7", "cmd": "npx -y @upstash/context7-mcp@latest", "envKeyArg": { "var": "CONTEXT7_API_KEY", "arg": "--api-key" } },
+      "claudemd": "- `context7`: docs actualizadas de librerias. Siempre antes de generar codigo con librerias que cambian rapido."
+    },
+    {
+      "id": "claude-flow",
+      "name": "claude-flow",
+      "group": "Orquestacion",
+      "desc": "Swarm/hive-mind multi-agente. POTENTE pero +87 tools de overhead.",
+      "recommendIf": ["large", "monorepo"],
+      "install": { "type": "npm", "pkg": "claude-flow@alpha", "bin": "claude-flow" },
+      "mcp": { "name": "claude-flow", "cmd": "npx claude-flow@alpha mcp start" },
+      "claudemd": "- `claude-flow`: swarm/hive-mind para paralelizacion masiva. Solo si justifica el overhead."
+    },
+    {
+      "id": "superclaude",
+      "name": "SuperClaude",
+      "group": "Orquestacion",
+      "desc": "30 slash commands /sc:* de workflow (brainstorm, analyze, implement...).",
+      "recommendIf": ["ci"],
+      "install": { "type": "pipx", "pkg": "SuperClaude", "post": "SuperClaude install --quiet" },
+      "mcp": null,
+      "claudemd": null,
+      "claudemdSection": "## SuperClaude\n\n/sc:brainstorm /sc:analyze /sc:implement /sc:research /sc:troubleshoot /sc:improve /sc:test /sc:document."
+    },
+    {
+      "id": "husky",
+      "name": "husky + lint-staged",
+      "group": "Git",
+      "desc": "Pre-commit hooks: lint+tests antes de cada commit.",
+      "recommendIf": ["tests-node"],
+      "install": { "type": "husky" },
+      "mcp": null,
+      "claudemd": null
+    },
+    {
+      "id": "rtk",
+      "name": "RTK (Rust Token Killer)",
+      "group": "Optimizacion",
+      "desc": "Comprime outputs Bash 60-90% (git, npm, tests). Auto-instala Rust si falta.",
+      "recommendIf": ["git-deps"],
+      "install": { "type": "rtk" },
+      "mcp": null,
+      "claudemd": "- `rtk`: prefijo OBLIGATORIO en comandos Bash verbosos (git/npm/cargo/jest/pytest). Ej: rtk git status."
+    },
+    {
+      "id": "markitdown",
+      "name": "MarkItDown",
+      "group": "Documentos",
+      "desc": "Convierte PDF/Word/Excel/PPT a Markdown para analisis.",
+      "recommendIf": ["docs"],
+      "install": { "type": "pipx", "pkg": "markitdown[all]", "bin": "markitdown", "also": "markitdown-mcp" },
+      "mcp": { "name": "markitdown", "cmd": "markitdown-mcp" },
+      "claudemd": "- `markitdown` (MCP): convierte PDF/Word/Excel/PPT/imagen/epub a Markdown antes de analizar."
+    },
+    {
+      "id": "pencil",
+      "name": "Pencil",
+      "group": "Diseno",
+      "desc": "Diseno vectorial .pen + skill pencil-to-code.",
+      "recommendIf": ["design", "frontend"],
+      "install": null,
+      "mcp": { "name": "pencil", "cmd": "npx -y pencil-mcp" },
+      "claudemd": "- `pencil` (MCP): crear/editar disenos vectoriales .pen. Conversion a codigo: skill pencil-to-code.",
+      "userSkills": ["pencil-to-code", "design-brief"]
+    },
+    {
+      "id": "figma",
+      "name": "Figma Dev Mode",
+      "group": "Diseno",
+      "desc": "Lee disenos Figma (requiere Figma desktop + Dev seat de pago).",
+      "recommendIf": [],
+      "install": null,
+      "mcp": { "name": "figma", "cmd": "npx -y @figma/mcp" },
+      "claudemd": "- `figma` (MCP): leer disenos Figma. Conversion a codigo: skill figma-to-code.",
+      "userSkills": ["figma-to-code", "design-brief"]
+    }
+  ],
+  "projectSkills": [
+    { "id": "frontend-components", "desc": "Patrones de componentes: 4 estados, accesibilidad WCAG, performance.", "recommendIf": ["frontend"] },
+    { "id": "api-design",          "desc": "Convenciones REST: codigos, errores consistentes, validacion, paginacion.", "recommendIf": ["backend-node", "backend-python"] },
+    { "id": "unity-conventions",   "desc": "Unity/C#: lifecycle, serializacion, pooling, kiosk/totem.", "recommendIf": ["unity"] },
+    { "id": "e2e-testing",         "desc": "E2E robusto: selectores por prioridad, sin sleeps, Page Objects.", "recommendIf": ["e2e"] },
+    { "id": "python-quality",      "desc": "Python: type hints 3.10+, ruff, excepciones especificas, async.", "recommendIf": ["python"] }
+  ]
+}
