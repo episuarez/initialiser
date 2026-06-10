@@ -1,6 +1,7 @@
 # init-claude
 
-[![Version](https://img.shields.io/badge/version-13.0.0-blue?style=flat-square)](https://github.com/episuarez/initialiser/releases)
+[![Version](https://img.shields.io/github/package-json/v/episuarez/initialiser?style=flat-square&label=version)](https://github.com/episuarez/initialiser/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/episuarez/initialiser/ci.yml?style=flat-square&label=CI)](https://github.com/episuarez/initialiser/actions)
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-orange?style=flat-square)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen?style=flat-square&logo=node.js)](https://nodejs.org)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4?style=flat-square&logo=windows)]()
@@ -112,6 +113,7 @@ init-claude update             Self-update the app (git pull + npm install)
 init-claude upgrade            Update installed components (npm, pipx, cargo)
 init-claude add-skill <id>     Install a skill from the built-in catalog
 init-claude add-skill <url>    Install a skill from any raw URL or GitHub repo
+init-claude --version          Print version and exit
 ```
 
 ### Typical first run
@@ -223,7 +225,7 @@ Running `init-claude update` does `git pull` + `npm install --omit=dev` and exit
 
 ## License
 
-MIT with Commons Clause. Free for personal, open-source, and internal use. Attribution required on forks and derivatives. Commercial redistribution or sale requires a separate license — contact [episuarez@gmail.com](mailto:episuarez@gmail.com).
+MIT with Commons Clause. Free for personal, open-source, and internal use. Attribution required on forks and derivatives. Commercial redistribution or sale requires a separate license — contact [email](mailto:11500823+episuarez@users.noreply.github.com).
 
 See [LICENSE](./LICENSE) for full terms.
 
@@ -231,6 +233,6 @@ See [LICENSE](./LICENSE) for full terms.
 
 ## Author
 
-**Epifanio Suárez Martínez** — [episuarez@gmail.com](mailto:episuarez@gmail.com)
+**Epifanio Suárez Martínez** — [email](mailto:11500823+episuarez@users.noreply.github.com)
 
 If you fork this project, please keep the attribution. If you build something commercial on top of it, let's talk.

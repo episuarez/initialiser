@@ -20,6 +20,15 @@ import * as remote from '../src/remote.mjs';
 
 const projectDir = process.cwd();
 const args = process.argv.slice(2);
+
+if (args.includes('--version') || args.includes('-v')) {
+  const { createRequire } = await import('node:module');
+  const require = createRequire(import.meta.url);
+  const { version } = require('../package.json');
+  console.log(`init-claude v${version}`);
+  process.exit(0);
+}
+
 const cmd = args[0]?.startsWith('-') ? null : args[0];
 const flagYes = args.includes('--yes') || args.includes('-y');
 
