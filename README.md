@@ -6,6 +6,7 @@
 
 **One command to set up Claude Code the right way — in any project.**
 
+[![npm](https://img.shields.io/npm/v/@episuarez/init-claude?style=flat-square&logo=npm)](https://www.npmjs.com/package/@episuarez/init-claude)
 [![Version](https://img.shields.io/github/package-json/v/episuarez/initialiser?style=flat-square&label=version)](https://github.com/episuarez/initialiser/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/episuarez/initialiser/ci.yml?style=flat-square&label=CI)](https://github.com/episuarez/initialiser/actions)
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-orange?style=flat-square)](./LICENSE)
@@ -19,14 +20,25 @@
 
 ## Install
 
-> Requires Git and Node.js ≥ 18.
+> Requires Node.js ≥ 18.
+
+**Option A — npm (recommended)**
+
+```bat
+npm install -g @episuarez/init-claude
+```
+
+**Option B — git clone (with auto-update)**
 
 ```bat
 git clone https://github.com/episuarez/initialiser %LOCALAPPDATA%\init-claude
 cd %LOCALAPPDATA%\init-claude && npm install --omit=dev
 ```
 
-Add `%LOCALAPPDATA%\init-claude` to your PATH. Then, from any project:
+Add `%LOCALAPPDATA%\init-claude` to your PATH.
+`init-claude update` will pull new versions automatically.
+
+Then, from any project:
 
 ```bat
 init-claude
@@ -130,11 +142,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full details.
 
 ## Installation options
 
-**Option A — with auto-update (above)** uses `git clone` and supports `init-claude update`.
+**Option A — npm** installs globally via npm. Update with `npm update -g @episuarez/init-claude`. No git required.
 
-**Option B — without Git** — run `install.cmd`. Copies the app and updates PATH. No auto-update.
+**Option B — git clone** supports `init-claude update` (git pull + npm install) and lets you edit the catalog locally. Checks for updates once a day silently.
 
-init-claude checks once a day (silent `git fetch`) for new commits and notifies you. `init-claude upgrade` updates the installed components (Claude Code CLI, context-mode, pipx packages, RTK).
+**Option C — without Git** — run `install.cmd`. Copies the app and updates PATH. No auto-update.
+
+`init-claude upgrade` updates the installed *components* (Claude Code CLI, context-mode, pipx packages, RTK) regardless of which installation option you used.
 
 ---
 

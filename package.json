@@ -1,10 +1,20 @@
 {
-  "name": "init-claude",
-  "version": "13.0.0",
-  "description": "Inicializador inteligente de Claude Code: detecta el perfil del proyecto, recomienda e instala componentes, MCPs y skills.",
+  "name": "@episuarez/init-claude",
+  "version": "1.0.0",
+  "description": "One command to configure Claude Code for any project: detects stack, installs MCPs, writes CLAUDE.md.",
   "type": "module",
-  "bin": { "init-claude": "./bin/init-claude.mjs" },
+  "bin": { "init-claude": "bin/init-claude.mjs" },
   "engines": { "node": ">=18" },
+  "keywords": ["claude-code", "claude", "anthropic", "mcp", "cli", "developer-tools", "ai", "init"],
+  "author": "Epifanio Suárez Martínez <11500823+episuarez@users.noreply.github.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/episuarez/initialiser#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/episuarez/initialiser.git"
+  },
+  "bugs": { "url": "https://github.com/episuarez/initialiser/issues" },
+  "files": ["bin/", "src/", "catalog/", "README.md", "LICENSE"],
   "dependencies": {
     "@clack/prompts": "^0.7.0",
     "picocolors": "^1.0.0"

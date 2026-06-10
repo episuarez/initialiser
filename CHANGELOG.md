@@ -2,7 +2,7 @@
 
 All notable changes to init-claude are documented here.
 
-## [13.0.0] — 2026-06-10
+## [1.0.0] — 2026-06-10
 
 ### Added
 - Full rewrite as a Node.js CLI/TUI application (replaces PowerShell v12 script).

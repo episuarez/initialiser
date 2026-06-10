@@ -99,7 +99,7 @@ if (cmd === 'check') {
 
 // ─── WIZARD (flujo principal) ────────────────────────────────────────────────
 console.clear();
-p.intro(pc.bgCyan(pc.black(' init-claude v13 ')));
+p.intro(pc.bgCyan(pc.black(' init-claude v1 ')));
 
 const s = p.spinner();
 s.start('Analizando el proyecto');
