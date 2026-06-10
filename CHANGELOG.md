@@ -2,6 +2,21 @@
 
 All notable changes to init-claude are documented here.
 
+## [1.0.1] — 2026-06-10
+
+### Changed
+- README reordered for impact: hero GIF → value prop → quick install → catalog table.
+- npm install added as primary installation method (`@episuarez/init-claude`).
+- npm badge added to README.
+- CONTRIBUTING.md and CHANGELOG.md added.
+- GitHub Actions CI: catalog JSON validation + syntax check on every push.
+- `--version` flag added.
+- `user-rules.md`: personal rules injected into all generated `CLAUDE.md` files; gitignored.
+- Skills now installed as `.claude/skills/<name>/SKILL.md` (Claude Code auto-discovery fix).
+- Generated `CLAUDE.md` gains: project context section, Definition of done, session error policy, dependencies policy, secrets policy, memory path.
+- Design section in generated `CLAUDE.md` only emitted when pencil/figma selected.
+- Model section decoupled from hardcoded model names.
+
 ## [1.0.0] — 2026-06-10
 
 ### Added
