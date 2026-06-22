@@ -98,6 +98,9 @@ if (cmd === 'check') {
 }
 
 // ─── WIZARD (flujo principal) ────────────────────────────────────────────────
+// @clack/prompts registra signal/exit listeners por cada spinner sin limpiarlos;
+// con varios spinners se supera el limite por defecto (10) y Node avisa. Subimos el techo.
+process.setMaxListeners(50);
 console.clear();
 p.intro(pc.bgCyan(pc.black(' init-claude v1 ')));
 
@@ -208,21 +211,31 @@ const selectedComps = catalog.components.filter(c => selectedIds.includes(c.id))
 const ctx = { projectDir, hasPython: hasCmd('python') };
 const results = [];
 
-for (const comp of selectedComps) {
-  const s2 = p.spinner();
-  s2.start(`${comp.name}`);
+const bar = (done, total) => {
+  const w = 20, fill = total ? Math.round((done / total) * w) : w;
+  return `[${'█'.repeat(fill)}${'░'.repeat(w - fill)}] ${done}/${total}`;
+};
+
+const totalComps = selectedComps.length;
+const sInstall = p.spinner();
+sInstall.start(`Instalando componentes ${bar(0, totalComps)}`);
+for (let i = 0; i < selectedComps.length; i++) {
+  const comp = selectedComps[i];
+  sInstall.message(`Instalando ${bar(i, totalComps)} · ${comp.name}`);
   try {
     const r = await installComponent(comp, ctx);
     const summary = r.map(([k, v]) => `${k}:${v}`).join(' ');
     const failed = r.some(([, v]) => v.startsWith('FAIL'));
-    s2.stop(`${comp.name} ${failed ? pc.red(summary) : pc.green(summary)}`);
-    results.push([comp.name, summary]);
+    results.push([comp.name, summary, failed]);
     // Skills user-level asociadas (design-brief, pencil-to-code...)
     for (const us of comp.userSkills ?? []) gen.copySkillToUser(us);
   } catch (e) {
-    s2.stop(`${comp.name} ${pc.red('ERROR: ' + e.message)}`);
+    results.push([comp.name, 'ERROR: ' + e.message, true]);
   }
 }
+sInstall.stop(`Componentes ${bar(totalComps, totalComps)}`);
+for (const [name, summary, failed] of results)
+  p.log.message(`${failed ? pc.red('✗') : pc.green('✓')} ${name} ${pc.gray(summary)}`);
 
 // Skills de proyecto
 const s3 = p.spinner();
@@ -245,10 +258,11 @@ s4.stop(`CLAUDE.md:${mdRes} settings:${setRes} gitignore:${giRes} hooks:${hookRe
 
 // Build del grafo si procede
 if (selectedIds.includes('code-review-graph') && hasCmd('code-review-graph')) {
-  const s5 = p.spinner();
-  s5.start('Construyendo grafo del codebase');
-  run('code-review-graph build');
-  s5.stop('Grafo construido');
+  p.log.step('Construyendo grafo del codebase (code-review-graph build)...');
+  const gr = run('code-review-graph build', { visible: true, timeout: 120000 });
+  if (gr.ok) p.log.success('Grafo construido');
+  else if (gr.timedOut) p.log.warn('Build del grafo abortado por timeout (120s). Continua; corre "code-review-graph build" a mano luego.');
+  else p.log.warn(`Build del grafo fallo (exit ${gr.code}). Continua sin grafo.`);
 }
 
 p.note(

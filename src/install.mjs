@@ -4,12 +4,13 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-export function run(cmd, { visible = false, cwd = undefined } = {}) {
+export function run(cmd, { visible = false, cwd = undefined, timeout = undefined } = {}) {
   try {
-    const out = execSync(cmd, { stdio: visible ? 'inherit' : 'pipe', encoding: 'utf8', input: '', cwd });
+    const out = execSync(cmd, { stdio: visible ? 'inherit' : 'pipe', encoding: 'utf8', input: '', cwd, timeout });
     return { ok: true, out: out ?? '' };
   } catch (e) {
-    return { ok: false, out: (e.stdout ?? '') + (e.stderr ?? ''), code: e.status };
+    const timedOut = e.code === 'ETIMEDOUT' || e.signal === 'SIGTERM';
+    return { ok: false, out: (e.stdout ?? '') + (e.stderr ?? ''), code: e.status, timedOut };
   }
 }
 
