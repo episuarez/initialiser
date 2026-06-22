@@ -115,6 +115,10 @@ export async function installComponent(comp, ctx) {
         if (r.ok) { run('rtk init -g --auto-patch'); results.push(['bin', 'INSTALLED (Windows: modo CLAUDE.md injection)']); }
         else results.push(['bin', 'FAIL (cargo)']);
       }
+    } else if (inst.type === 'project-npx') {
+      // Comando npx que escribe en el proyecto (p.ej. autoskills -> .claude/skills/).
+      const r = run(inst.cmd, { cwd: ctx.projectDir, timeout: 180000 });
+      results.push(['skills', r.ok ? 'INSTALLED' : (r.timedOut ? 'TIMEOUT (180s)' : `FAIL (exit ${r.code})`)]);
     } else if (inst.type === 'husky') {
       const proj = ctx.projectDir;
       if (existsSync(join(proj, '.husky'))) results.push(['bin', 'PRESENT']);

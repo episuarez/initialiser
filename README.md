@@ -72,6 +72,7 @@ Scans your project (languages, frameworks, size, CI, docs, design files), recomm
 | **sequential-thinking** | Core | Structured reasoning for architecture and design decisions. |
 | **context7** | Core | Up-to-date library docs (React, Next.js, FastAPI…) fetched at runtime. |
 | **RTK** | Core | Compresses Bash output 60–90% (git, npm, cargo, test runners). |
+| **autoskills** | Skills | Auto-installs curated, SHA-256-verified skills matched to your stack (React, Next, Vue, Zod, Tailwind…) via `npx autoskills`. |
 | **code-review-graph** | Analysis | Codebase dependency graph: impact analysis, multi-file search. |
 | **serena** | Analysis | Semantic LSP: go-to-definition, find-references, precise symbol search. |
 | **playwright** | Web | Browser automation, scraping, E2E testing via MCP. |
@@ -85,7 +86,7 @@ Scans your project (languages, frameworks, size, CI, docs, design files), recomm
 
 **How defaults are chosen** — by cost asymmetry, not project size: zero-overhead universal wins (context-mode, sequential-thinking, context7, RTK) are always on; heavy MCPs (serena ~20 tools, playwright ~25, claude-flow +87) are pre-checked only with a real applicability signal — never just because the repo is big. claude-flow and Figma are opt-in. Anything already provided by an installed plugin or MCP is skipped to avoid duplicate tools.
 
-**Project skills** installed per-stack: `frontend-components` · `api-design` · `unity-conventions` · `e2e-testing` · `python-quality`
+**Project skills** installed per-stack: `frontend-components` · `api-design` · `unity-conventions` · `e2e-testing` · `python-quality` — and, via the **autoskills** component, any stack-matched skills from the [autoskills](https://www.autoskills.sh/) registry.
 
 ---
 

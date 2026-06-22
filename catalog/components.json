@@ -43,6 +43,17 @@
       "claudemd": "- `rtk`: prefijo OBLIGATORIO en comandos Bash verbosos (git/npm/cargo/jest/pytest). Ej: rtk git status."
     },
     {
+      "id": "autoskills",
+      "name": "autoskills",
+      "group": "Skills",
+      "tier": "suggested",
+      "desc": "Auto-instala skills curadas segun tu stack (React, Next, Vue, Zod, Tailwind...) desde el registro auditado de autoskills, verificadas por SHA-256. Complementa las skills de proyecto.",
+      "recommendIf": ["javascript"],
+      "install": { "type": "project-npx", "cmd": "npx -y autoskills --yes --agent claude-code" },
+      "mcp": null,
+      "claudemd": null
+    },
+    {
       "id": "code-review-graph",
       "name": "code-review-graph",
       "group": "Analisis",
