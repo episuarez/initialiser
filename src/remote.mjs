@@ -15,6 +15,29 @@ function git(args) {
 
 export function isGitRepo() { return existsSync(join(APP_ROOT, '.git')); }
 
+// URL del repo, leida de package.json (repository.url).
+const REPO_URL = (() => {
+  try {
+    const pkg = JSON.parse(readFileSync(join(APP_ROOT, 'package.json'), 'utf8'));
+    return (pkg.repository?.url || '').replace(/^git\+/, '').replace(/\.git$/, '') || null;
+  } catch { return null; }
+})();
+
+// Convierte una copia xcopy (no-git) en repo git in situ, sin borrar la carpeta en uso.
+// Necesario para quien instalo con install.cmd antes de migrar a clon.
+function migrateToGit() {
+  if (!REPO_URL) return { ok: false, msg: 'No se pudo determinar la URL del repo (package.json).' };
+  if (git('init -q') === null) return { ok: false, msg: 'git init fallo.' };
+  if (git('remote get-url origin') === null) git(`remote add origin ${REPO_URL}`);
+  else git(`remote set-url origin ${REPO_URL}`);
+  if (git('fetch --depth 1 origin main') === null)
+    return { ok: false, msg: 'git fetch fallo (sin red o repo inaccesible).' };
+  // -f sobrescribe los .mjs xcopy con la version canonica; node_modules esta en .gitignore.
+  if (git('checkout -f -B main origin/main') === null) return { ok: false, msg: 'git checkout fallo.' };
+  git('branch --set-upstream-to=origin/main main');
+  return { ok: true, msg: 'Copia xcopy convertida a repo git (auto-migracion).' };
+}
+
 // Check silencioso 1 vez al dia. Devuelve nº commits pendientes o 0.
 export function checkUpdatesQuiet() {
   if (!isGitRepo()) return 0;
@@ -29,17 +52,16 @@ export function checkUpdatesQuiet() {
 }
 
 export function selfUpdate() {
+  let prefix = '';
   if (!isGitRepo()) {
-    return { ok: false, msg: `Esta carpeta no es un repo git: ${APP_ROOT}\n` +
-      `Setup (una vez):\n` +
-      `  1. Crea un repo 'init-claude' en tu Forgejo/GitHub con el contenido de esta carpeta.\n` +
-      `  2. git clone <url> en su lugar.\n` +
-      `  3. A partir de ahi: init-claude update hace git pull + npm install.` };
+    const m = migrateToGit();
+    if (!m.ok) return m;
+    prefix = m.msg + '\n';
   }
   const pull = git('pull');
-  if (pull === null) return { ok: false, msg: 'git pull fallo (conflictos o sin upstream).' };
+  if (pull === null) return { ok: false, msg: prefix + 'git pull fallo (conflictos o sin upstream).' };
   try { execSync('npm install --omit=dev', { cwd: APP_ROOT, stdio: 'pipe' }); } catch {}
-  return { ok: true, msg: pull };
+  return { ok: true, msg: prefix + pull };
 }
 
 // Descarga una skill desde URL (raw .md, o repo GitHub -> intenta SKILL.md).

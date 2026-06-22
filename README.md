@@ -46,6 +46,22 @@ init-claude
 
 ---
 
+## Updating
+
+```bat
+init-claude update
+```
+
+This pulls the latest version (`git pull` + `npm install`) and **never breaks again**:
+
+- If your install is a git clone (Option B, or `install.cmd` on a machine with Git), it just updates.
+- If your install is an old copy-based one (xcopy, no `.git`), `update` **auto-converts it to a git repo in place** the first time, then updates — no manual reclone.
+- npm installs (Option A) update with `npm update -g @episuarez/init-claude`.
+
+> If your install predates this auto-migration and `update` still complains it's not a git repo, re-run `install.cmd` (now clones via Git) or switch to npm. After that, `init-claude update` is all you ever need.
+
+---
+
 ## What it does
 
 Scans your project (languages, frameworks, size, CI, docs, design files), recommends the right Claude Code components and skills, and installs them — MCPs registered, `CLAUDE.md` written, git hooks wired.
@@ -146,7 +162,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for full details.
 
 **Option B — git clone** supports `init-claude update` (git pull + npm install) and lets you edit the catalog locally. Checks for updates once a day silently.
 
-**Option C — without Git** — run `install.cmd`. Copies the app and updates PATH. No auto-update.
+**Option C — `install.cmd`** — clones via Git when available (auto-updatable with `init-claude update`) and updates PATH. Without Git it falls back to a plain copy (no auto-update). Re-running it on an old copy-based install reconverts it to a git clone.
 
 `init-claude upgrade` updates the installed *components* (Claude Code CLI, context-mode, pipx packages, RTK) regardless of which installation option you used.
 
