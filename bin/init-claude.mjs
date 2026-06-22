@@ -111,8 +111,25 @@ const plugins = [...new Set(installedPlugins())];
 const hasSuperpowers = plugins.some(x => /superpowers/i.test(x));
 s.stop(`Perfil: ${pc.cyan(profile.langs.join(', ') || 'sin lenguaje')} ${profile.fws.length ? '· ' + pc.cyan(profile.fws.join(', ')) : ''} · ${profile.fileCount} archivos (${profile.size})${profile.hasDocs ? ' · docs' : ''}${profile.hasDesign ? ' · diseño' : ''}${profile.hasCI ? ' · CI' : ''}`);
 
-// Recomendaciones segun catalogo + tags del perfil
-const recommended = (c) => c.alwaysOn || (c.recommendIf ?? []).some(t => profile.tags.has(t));
+// Capacidades ya provistas por plugins instalados o MCPs registrados: no las re-recomendamos
+// (evita duplicar tools, p.ej. plugin context-mode + MCP context-mode standalone).
+const provided = new Set([...plugins, ...mcpList()].map(x => x.toLowerCase()));
+const alreadyProvided = (c) =>
+  [c.id, c.mcp?.name, c.install?.bin].filter(Boolean).some(n => provided.has(String(n).toLowerCase()));
+
+// Recomendacion por tier (asimetria de coste) + aplicabilidad:
+//   core      -> siempre (salvo ya provisto)
+//   suggested -> recommendIf (OR) Y requireTags (AND)
+//   available -> nunca pre-marcado (opt-in)
+const recommended = (c) => {
+  if (alreadyProvided(c)) return false;
+  const tier = c.tier ?? (c.alwaysOn ? 'core' : 'suggested');
+  if (tier === 'core') return true;
+  if (tier === 'available') return false;
+  const orOk = (c.recommendIf ?? []).some(t => profile.tags.has(t));
+  const andOk = (c.requireTags ?? []).every(t => profile.tags.has(t));
+  return orOk && andOk;
+};
 
 let selectedIds, projectSkillIds, extraContent = null;
 

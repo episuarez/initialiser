@@ -37,6 +37,7 @@ export function detectProfile(root) {
 
   const size = state.fileCount < 50 ? 'small' : state.fileCount < 500 ? 'medium' : 'large';
   tags.add(size);
+  if (size !== 'small') tags.add('sizable'); // valor que escala con el codebase (code-review-graph, serena)
   if (state.hasDocs) tags.add('docs');
   if (state.hasDesign) tags.add('design');
 
@@ -98,7 +99,6 @@ export function detectProfile(root) {
 
   if (hasTests) tags.add('tests');
   if (hasTests && tags.has('git') && has('package.json')) tags.add('tests-node');
-  if (tags.has('git') && (hasTests || has('package.json') || has('Cargo.toml') || has('go.mod'))) tags.add('git-deps');
 
   return { tags, langs, fws, fileCount: state.fileCount, size, hasDocs: state.hasDocs, hasDesign: state.hasDesign, hasTests, hasGit: tags.has('git'), hasCI: tags.has('ci'), isMonorepo: tags.has('monorepo') };
 }

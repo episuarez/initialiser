@@ -89,11 +89,10 @@ export async function installComponent(comp, ctx) {
       if (inst.post) run(inst.post);
     } else if (inst.type === 'rtk') {
       if (hasCmd('rtk')) results.push(['bin', 'PRESENT']);
-      else {
-        if (!hasCmd('cargo')) {
-          if (hasCmd('winget')) run('winget install -e --id Rustlang.Rustup --silent --accept-source-agreements --accept-package-agreements');
-          if (!hasCmd('cargo')) { results.push(['bin', 'FAIL (instala Rust: rustup.rs)']); return results; }
-        }
+      else if (!hasCmd('cargo')) {
+        // Recomendar != instalar: no arrastramos un toolchain Rust sin permiso.
+        results.push(['bin', 'SKIPPED (instala Rust en rustup.rs y luego: init-claude upgrade)']);
+      } else {
         const r = run('cargo install --git https://github.com/rtk-ai/rtk --locked --force');
         if (r.ok) { run('rtk init -g --auto-patch'); results.push(['bin', 'INSTALLED (Windows: modo CLAUDE.md injection)']); }
         else results.push(['bin', 'FAIL (cargo)']);
