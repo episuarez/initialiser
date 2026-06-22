@@ -145,7 +145,7 @@ const alreadyProvided = (c) =>
 //   available -> nunca pre-marcado (opt-in)
 const recommended = (c) => {
   if (alreadyProvided(c)) return false;
-  const tier = c.tier ?? (c.alwaysOn ? 'core' : 'suggested');
+  const tier = c.tier ?? 'suggested';
   if (tier === 'core') return true;
   if (tier === 'available') {
     // Con Tool Search on el schema de tools deja de pesar: relajamos algunos opt-in pesados.
@@ -263,7 +263,19 @@ const sInstall = p.spinner();
 sInstall.start(`Instalando componentes ${bar(0, totalComps)}`);
 for (let i = 0; i < selectedComps.length; i++) {
   const comp = selectedComps[i];
-  sInstall.message(`Instalando ${bar(i, totalComps)} · ${comp.name}`);
+  // Ticker: segundos transcurridos en el componente actual -> movimiento visible
+  // aunque la instalacion tarde (runAsync no bloquea el event loop).
+  let secs = 0, lastLine = '';
+  const render = () => sInstall.message(
+    `Instalando ${bar(i, totalComps)} · ${comp.name}${secs ? pc.gray(` ${secs}s`) : ''}${lastLine ? pc.gray(' · ' + lastLine) : ''}`
+  );
+  render();
+  const tick = setInterval(() => { secs++; render(); }, 1000);
+  // Heartbeat de salida del subproceso (ultima linea no vacia, recortada)
+  ctx.onProgress = (chunk) => {
+    const line = chunk.split(/\r?\n/).map(s => s.trim()).filter(Boolean).pop();
+    if (line) { lastLine = line.replace(/\s+/g, ' ').slice(0, 48); }
+  };
   try {
     const r = await installComponent(comp, ctx);
     const summary = r.map(([k, v]) => `${k}:${v}`).join(' ');
@@ -273,6 +285,9 @@ for (let i = 0; i < selectedComps.length; i++) {
     for (const us of comp.userSkills ?? []) gen.copySkillToUser(us);
   } catch (e) {
     results.push([comp.name, 'ERROR: ' + e.message, true]);
+  } finally {
+    clearInterval(tick);
+    ctx.onProgress = undefined;
   }
 }
 sInstall.stop(`Componentes ${bar(totalComps, totalComps)}`);

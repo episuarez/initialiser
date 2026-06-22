@@ -1,5 +1,5 @@
 // src/install.mjs — Instaladores con checks (nunca reinstala lo presente).
-import { execSync, spawnSync } from 'node:child_process';
+import { execSync, spawnSync, spawn } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
@@ -17,6 +17,22 @@ export function run(cmd, { visible = false, cwd = undefined, timeout = undefined
 export function hasCmd(cmd) {
   const r = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { encoding: 'utf8' });
   return r.status === 0;
+}
+
+// Variante asincrona de run(): NO bloquea el event loop, asi el spinner/ticker
+// siguen animando durante instalaciones largas (npm -g, pipx, cargo, npx).
+// onData recibe cada chunk de salida (para heartbeat/streaming).
+export function runAsync(cmd, { cwd = undefined, timeout = undefined, onData = undefined } = {}) {
+  return new Promise((resolve) => {
+    const child = spawn(cmd, { shell: true, cwd, windowsHide: true });
+    let out = '', timedOut = false;
+    const t = timeout ? setTimeout(() => { timedOut = true; child.kill(); }, timeout) : null;
+    const collect = (d) => { const s = d.toString(); out += s; if (onData) onData(s); };
+    child.stdout?.on('data', collect);
+    child.stderr?.on('data', collect);
+    child.on('error', (e) => { if (t) clearTimeout(t); resolve({ ok: false, out: out + String(e), code: null, timedOut }); });
+    child.on('close', (code) => { if (t) clearTimeout(t); resolve({ ok: code === 0 && !timedOut, out, code, timedOut }); });
+  });
 }
 
 export function claudeVersion() {
@@ -84,13 +100,15 @@ export async function installComponent(comp, ctx) {
   const inst = comp.install;
   const results = [];
 
+  // Instalaciones largas pasan por runAsync (no bloquea el event loop -> spinner vivo).
+  const onData = ctx.onProgress;
   // 1) Binario/paquete
   if (inst) {
     if (inst.type === 'npm') {
       const bin = inst.bin ?? inst.pkg.split('@')[0];
       if (npmHas(inst.pkg) || hasCmd(bin)) results.push(['bin', 'PRESENT']);
       else {
-        const r = run(`npm install -g ${inst.pkg}`);
+        const r = await runAsync(`npm install -g ${inst.pkg}`, { onData });
         results.push(['bin', r.ok ? 'INSTALLED' : `FAIL (npm exit ${r.code})`]);
         _npmList = null;
       }
@@ -99,32 +117,32 @@ export async function installComponent(comp, ctx) {
       const bin = inst.bin ?? inst.pkg.replace(/\[.*\]$/, '');
       if (pipxHas(inst.pkg) || hasCmd(bin)) results.push(['bin', 'PRESENT']);
       else {
-        const r = run(`pipx install "${inst.pkg}"`);
-        if (inst.also) run(`pipx install ${inst.also}`);
+        const r = await runAsync(`pipx install "${inst.pkg}"`, { onData });
+        if (inst.also) await runAsync(`pipx install ${inst.also}`, { onData });
         results.push(['bin', r.ok ? 'INSTALLED' : 'FAIL']);
         _pipxList = null;
       }
-      if (inst.post) run(inst.post);
+      if (inst.post) await runAsync(inst.post, { onData });
     } else if (inst.type === 'rtk') {
       if (hasCmd('rtk')) results.push(['bin', 'PRESENT']);
       else if (!hasCmd('cargo')) {
         // Recomendar != instalar: no arrastramos un toolchain Rust sin permiso.
         results.push(['bin', 'SKIPPED (instala Rust en rustup.rs y luego: init-claude upgrade)']);
       } else {
-        const r = run('cargo install --git https://github.com/rtk-ai/rtk --locked --force');
-        if (r.ok) { run('rtk init -g --auto-patch'); results.push(['bin', 'INSTALLED (Windows: modo CLAUDE.md injection)']); }
+        const r = await runAsync('cargo install --git https://github.com/rtk-ai/rtk --locked --force', { onData });
+        if (r.ok) { await runAsync('rtk init -g --auto-patch'); results.push(['bin', 'INSTALLED (Windows: modo CLAUDE.md injection)']); }
         else results.push(['bin', 'FAIL (cargo)']);
       }
     } else if (inst.type === 'project-npx') {
       // Comando npx que escribe en el proyecto (p.ej. autoskills -> .claude/skills/).
-      const r = run(inst.cmd, { cwd: ctx.projectDir, timeout: 180000 });
+      const r = await runAsync(inst.cmd, { cwd: ctx.projectDir, timeout: 180000, onData });
       results.push(['skills', r.ok ? 'INSTALLED' : (r.timedOut ? 'TIMEOUT (180s)' : `FAIL (exit ${r.code})`)]);
     } else if (inst.type === 'husky') {
       const proj = ctx.projectDir;
       if (existsSync(join(proj, '.husky'))) results.push(['bin', 'PRESENT']);
       else if (existsSync(join(proj, 'package.json')) && existsSync(join(proj, '.git'))) {
-        run(`npm install --save-dev husky lint-staged`, { cwd: proj });
-        run(`npx husky init`, { cwd: proj });
+        await runAsync(`npm install --save-dev husky lint-staged`, { cwd: proj, onData });
+        await runAsync(`npx husky init`, { cwd: proj, onData });
         results.push(['bin', existsSync(join(proj, '.husky')) ? 'INSTALLED' : 'FAIL']);
       } else results.push(['bin', 'SKIPPED (sin package.json/.git)']);
     }
@@ -132,7 +150,7 @@ export async function installComponent(comp, ctx) {
 
   // 2) Requisitos (uv para serena, etc.)
   if (comp.requires?.includes('uv') && !hasCmd('uv')) {
-    if (ctx.hasPython && hasCmd('pipx')) { run('pipx install uv'); }
+    if (ctx.hasPython && hasCmd('pipx')) { await runAsync('pipx install uv', { onData }); }
     if (!hasCmd('uv')) { results.push(['mcp', 'SKIPPED (falta uv)']); return results; }
   }
 
@@ -143,7 +161,7 @@ export async function installComponent(comp, ctx) {
       let cmd = comp.mcp.cmd;
       const ek = comp.mcp.envKeyArg;
       if (ek && process.env[ek.var]) cmd += ` ${ek.arg} ${process.env[ek.var]}`;
-      run(`claude mcp add ${comp.mcp.name} -s user -- ${cmd}`);
+      await runAsync(`claude mcp add ${comp.mcp.name} -s user -- ${cmd}`, { onData });
       mcpInvalidate();
       results.push(['mcp', mcpHas(comp.mcp.name) ? 'REGISTERED' : 'FAIL']);
     }
