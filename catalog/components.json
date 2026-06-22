@@ -9,7 +9,8 @@
       "desc": "Memoria de sesion + sandbox de tool outputs (98% ahorro con plugin). Esencial.",
       "install": { "type": "npm", "pkg": "context-mode" },
       "mcp": { "name": "context-mode", "cmd": "npx -y context-mode" },
-      "claudemd": "- `context-mode`: memoria de sesion. Antes de re-leer: `ctx_search`. Outputs grandes: `ctx_execute`/`ctx_batch_execute`/`ctx_fetch_and_index`."
+      "claudemd": "- `context-mode`: memoria de sesion. Antes de re-leer: `ctx_search`. Outputs grandes: `ctx_execute`/`ctx_batch_execute`/`ctx_fetch_and_index`.",
+      "userSkills": ["mcp-code-execution"]
     },
     {
       "id": "sequential-thinking",
@@ -83,6 +84,7 @@
       "tier": "available",
       "desc": "Swarm/hive-mind multi-agente. POTENTE pero +87 tools de overhead: opt-in consciente.",
       "recommendIf": [],
+      "recommendIfToolSearch": ["large", "monorepo"],
       "install": { "type": "npm", "pkg": "claude-flow@alpha", "bin": "claude-flow" },
       "mcp": { "name": "claude-flow", "cmd": "npx claude-flow@alpha mcp start" },
       "claudemd": "- `claude-flow`: swarm/hive-mind para paralelizacion masiva. Solo si justifica el overhead."
@@ -132,6 +134,17 @@
       "mcp": { "name": "pencil", "cmd": "npx -y pencil-mcp" },
       "claudemd": "- `pencil` (MCP): crear/editar disenos vectoriales .pen. Conversion a codigo: skill pencil-to-code.",
       "userSkills": ["pencil-to-code", "design-brief"]
+    },
+    {
+      "id": "mcp-gateway",
+      "name": "MCP Gateway (mcpjungle)",
+      "group": "Optimizacion",
+      "tier": "available",
+      "desc": "Consolida varios MCP servers tras un endpoint (discovery/routing). ~50% menos tokens con flota grande de MCPs. Opt-in.",
+      "recommendIf": [],
+      "install": { "type": "npm", "pkg": "mcpjungle", "bin": "mcpjungle" },
+      "mcp": null,
+      "claudemd": "- `mcp-gateway` (mcpjungle): un solo endpoint para varios MCP servers. Util si corres muchos MCPs y el overhead de tools pesa."
     },
     {
       "id": "figma",

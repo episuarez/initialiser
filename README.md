@@ -78,6 +78,7 @@ Scans your project (languages, frameworks, size, CI, docs, design files), recomm
 | **claude-flow** | Orchestration | Multi-agent swarm / hive-mind for large parallel tasks. |
 | **SuperClaude** | Orchestration | 30 `/sc:*` workflow slash commands. |
 | **husky + lint-staged** | Git | Pre-commit hooks: lint and tests before every commit. |
+| **MCP Gateway** | Optimization | Consolidates many MCP servers behind one endpoint (~50% fewer tokens with a large MCP fleet). Opt-in. |
 | **MarkItDown** | Documents | Converts PDF/Word/Excel/PPT to Markdown for Claude to read. |
 | **Pencil** | Design | Vector design `.pen` files + pencil-to-code skill. |
 | **Figma Dev Mode** | Design | Reads Figma designs (requires Figma desktop + Dev seat). |
@@ -93,7 +94,7 @@ Scans your project (languages, frameworks, size, CI, docs, design files), recomm
 ```
 init-claude                    Interactive wizard (recommended)
 init-claude --yes              Apply recommended defaults without prompts
-init-claude check              Doctor: show what's installed, no changes made
+init-claude check              Doctor: installed tools, MCP Tool Search state, CLAUDE.md size
 init-claude update             Self-update the app (git pull + npm install)
 init-claude upgrade            Update installed components (npm, pipx, cargo)
 init-claude add-skill <id>     Install a skill from the built-in catalog

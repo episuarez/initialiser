@@ -19,6 +19,24 @@ export function hasCmd(cmd) {
   return r.status === 0;
 }
 
+export function claudeVersion() {
+  if (!hasCmd('claude')) return null;
+  const m = (run('claude --version').out || '').match(/(\d+)\.(\d+)\.(\d+)/);
+  return m ? { major: +m[1], minor: +m[2], patch: +m[3], raw: m[0] } : null;
+}
+
+// MCP Tool Search: carga schemas de tools bajo demanda (~85% menos overhead).
+// On por defecto desde Claude Code 2.1; override con ENABLE_TOOL_SEARCH.
+export function toolSearchState() {
+  const e = (process.env.ENABLE_TOOL_SEARCH || '').toLowerCase();
+  if (['1', 'true', 'on', 'yes'].includes(e)) return { on: true, reason: 'ENABLE_TOOL_SEARCH' };
+  if (['0', 'false', 'off', 'no'].includes(e)) return { on: false, reason: 'ENABLE_TOOL_SEARCH=off' };
+  const v = claudeVersion();
+  if (!v) return { on: null, reason: 'claude no detectado' };
+  const on = v.major > 2 || (v.major === 2 && v.minor >= 1);
+  return { on, reason: on ? `default (CC ${v.raw})` : `CC ${v.raw} <2.1` };
+}
+
 let _npmList = null;
 export function npmHas(pkg) {
   if (_npmList === null) _npmList = run('npm list -g --depth=0').out;

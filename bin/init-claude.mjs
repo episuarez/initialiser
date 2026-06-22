@@ -14,7 +14,7 @@ import pc from 'picocolors';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { detectProfile } from '../src/detect.mjs';
-import { installComponent, hasCmd, mcpList, installedPlugins, run } from '../src/install.mjs';
+import { installComponent, hasCmd, mcpList, installedPlugins, run, toolSearchState } from '../src/install.mjs';
 import * as gen from '../src/generate.mjs';
 import * as remote from '../src/remote.mjs';
 
@@ -93,6 +93,24 @@ if (cmd === 'check') {
   console.log(pc.cyan('\nProyecto:'));
   for (const f of ['CLAUDE.md', '.claude/settings.json', '.claude/skills', '.git/hooks/commit-msg'])
     console.log(`  ${existsSync(join(projectDir, f)) ? pc.green('[x]') : pc.gray('[ ]')} ${f}`);
+
+  // Ahorro de tokens: estado de MCP Tool Search (mayor palanca 2026)
+  console.log(pc.cyan('\nAhorro de tokens:'));
+  const ts = toolSearchState();
+  const tsIcon = ts.on === true ? pc.green('[x]') : ts.on === false ? pc.red('[ ]') : pc.gray('[?]');
+  console.log(`  ${tsIcon} MCP Tool Search ${pc.gray('(' + ts.reason + ')')}`);
+  if (ts.on === false) console.log(pc.yellow('      Actívalo: export ENABLE_TOOL_SEARCH=1 (o actualiza Claude Code a >=2.1). ~85% menos overhead de tools.'));
+
+  // Tamano del CLAUDE.md del proyecto (recomendado <200 lineas; skills cargan on-demand)
+  const mdPath = join(projectDir, 'CLAUDE.md');
+  if (existsSync(mdPath)) {
+    const txt = readFileSync(mdPath, 'utf8');
+    const lines = txt.split('\n').length;
+    const approxTok = Math.round(txt.length / 4);
+    const big = lines > 200;
+    console.log(`  ${big ? pc.yellow('[!]') : pc.green('[x]')} CLAUDE.md: ${lines} lineas, ~${approxTok} tokens`);
+    if (big) console.log(pc.yellow('      >200 lineas: mueve lo especifico a skills (.claude/skills/, cargan on-demand).'));
+  }
   console.log('');
   process.exit(0);
 }
@@ -109,7 +127,11 @@ s.start('Analizando el proyecto');
 const profile = detectProfile(projectDir);
 const plugins = [...new Set(installedPlugins())];
 const hasSuperpowers = plugins.some(x => /superpowers/i.test(x));
+const toolSearch = toolSearchState();
 s.stop(`Perfil: ${pc.cyan(profile.langs.join(', ') || 'sin lenguaje')} ${profile.fws.length ? '· ' + pc.cyan(profile.fws.join(', ')) : ''} · ${profile.fileCount} archivos (${profile.size})${profile.hasDocs ? ' · docs' : ''}${profile.hasDesign ? ' · diseño' : ''}${profile.hasCI ? ' · CI' : ''}`);
+
+if (toolSearch.on === false)
+  p.log.warn(`MCP Tool Search OFF (${toolSearch.reason}). Actívalo con ENABLE_TOOL_SEARCH=1 o Claude Code >=2.1: ~85% menos overhead de tools.`);
 
 // Capacidades ya provistas por plugins instalados o MCPs registrados: no las re-recomendamos
 // (evita duplicar tools, p.ej. plugin context-mode + MCP context-mode standalone).
@@ -125,7 +147,10 @@ const recommended = (c) => {
   if (alreadyProvided(c)) return false;
   const tier = c.tier ?? (c.alwaysOn ? 'core' : 'suggested');
   if (tier === 'core') return true;
-  if (tier === 'available') return false;
+  if (tier === 'available') {
+    // Con Tool Search on el schema de tools deja de pesar: relajamos algunos opt-in pesados.
+    return toolSearch.on === true && (c.recommendIfToolSearch ?? []).some(t => profile.tags.has(t));
+  }
   const orOk = (c.recommendIf ?? []).some(t => profile.tags.has(t));
   const andOk = (c.requireTags ?? []).every(t => profile.tags.has(t));
   return orOk && andOk;
