@@ -13,7 +13,7 @@
     "check:dist": "tsup && git diff --exit-code dist",
     "build:readme": "node scripts/gen-readme.mjs",
     "check:readme": "node scripts/gen-readme.mjs && git diff --exit-code README.md",
-    "prepare": "husky",
+    "prepare": "husky || exit 0",
     "prepublishOnly": "tsup"
   },
   "engines": {
