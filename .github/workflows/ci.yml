@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    name: Validate catalog
+    name: Test + validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,35 +18,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Validate catalog/components.json
-        run: |
-          node -e "
-            const fs = require('fs');
-            const raw = fs.readFileSync('catalog/components.json', 'utf8');
-            const catalog = JSON.parse(raw);
-            const ids = catalog.components.map(c => c.id);
-            const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
-            if (dupes.length) { console.error('Duplicate ids:', dupes); process.exit(1); }
-            for (const c of catalog.components) {
-              if (!c.id || !c.name || !c.group || !c.desc) {
-                console.error('Missing required field in:', c.id ?? c);
-                process.exit(1);
-              }
-            }
-            for (const s of catalog.projectSkills ?? []) {
-              if (!s.id || !s.desc) {
-                console.error('Missing required field in projectSkill:', s.id ?? s);
-                process.exit(1);
-              }
-            }
-            console.log('catalog/components.json OK —', ids.length, 'components,', (catalog.projectSkills ?? []).length, 'skills');
-          "
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Syntax check source files
-        run: |
-          node --check bin/init-claude.mjs
-          node --check src/detect.mjs
-          node --check src/generate.mjs
-          node --check src/install.mjs
-          node --check src/remote.mjs
-          echo "All .mjs files OK"
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: dist/ is in sync with source (build is committed)
+        run: npm run check:dist
+
+      - name: README table is in sync with catalog
+        run: npm run check:readme
+
+      - name: Syntax check build scripts
+        run: for f in scripts/*.mjs; do node --check "$f"; done
