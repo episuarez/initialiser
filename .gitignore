@@ -24,6 +24,7 @@ docs/
 # Tooling local de este repo (no se publica)
 .agents/
 .claude/
+.husky/
 
 # Claude Code tooling (los *.bak ya estan cubiertos arriba)
 .context-mode/

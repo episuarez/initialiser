@@ -10,7 +10,7 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check:dist": "tsup && git diff --exit-code dist",
+    "check:dist": "tsup && git -c core.fileMode=false diff --exit-code dist",
     "build:readme": "node scripts/gen-readme.mjs",
     "check:readme": "node scripts/gen-readme.mjs && git diff --exit-code README.md",
     "prepare": "husky || exit 0",
