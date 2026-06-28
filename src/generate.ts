@@ -1,11 +1,13 @@
-// src/generate.mjs — CLAUDE.md (con CUSTOM block), settings, hooks, skills.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+// src/generate.ts — CLAUDE.md (con CUSTOM block), settings, hooks, skills.
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, rmSync } from 'node:fs';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
+import { CATALOG_DIR } from './catalog.js';
+import type { Component } from './catalog.js';
+import type { Profile, Snapshot } from './types.js';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-export const CATALOG_DIR = join(__dir, '..', 'catalog');
 const APP_ROOT = join(__dir, '..');
 const USER_RULES_PATH = join(APP_ROOT, 'user-rules.md');
 
@@ -21,15 +23,13 @@ Escribe debajo de esta linea. Todo lo que pongas aparece como seccion
 ---
 `;
 
-// Crea user-rules.md con plantilla si no existe. Nunca lo sobreescribe.
-export function ensureUserRulesFile() {
+export function ensureUserRulesFile(): 'PRESENT' | 'CREATED' {
   if (existsSync(USER_RULES_PATH)) return 'PRESENT';
   writeCRLF(USER_RULES_PATH, USER_RULES_TEMPLATE);
   return 'CREATED';
 }
 
-// Devuelve el contenido util de user-rules.md (lo que hay tras el separador ---).
-export function getUserRules() {
+export function getUserRules(): string {
   if (!existsSync(USER_RULES_PATH)) return '';
   const raw = readFileSync(USER_RULES_PATH, 'utf8');
   const idx = raw.indexOf('\n---');
@@ -37,21 +37,62 @@ export function getUserRules() {
   return body.trim();
 }
 
-function writeCRLF(path, content) {
+function writeCRLF(path: string, content: string): void {
   writeFileSync(path, content.replace(/\r?\n/g, '\r\n'), 'utf8');
 }
-function writeLF(path, content) {
+function writeLF(path: string, content: string): void {
   writeFileSync(path, content.replace(/\r\n/g, '\n'), 'utf8');
 }
 
-export function getCustomBlock(path) {
+export function getCustomBlock(path: string): string {
   if (!existsSync(path)) return '';
   const m = readFileSync(path, 'utf8').match(/<!-- CUSTOM:START -->([\s\S]*?)<!-- CUSTOM:END -->/);
   return m ? `\n<!-- CUSTOM:START -->${m[1]}<!-- CUSTOM:END -->` : '';
 }
 
+// Encabezados '## ' que emite el template (gestionados por init-claude). Un test
+// verifica que todo heading generado este aqui (evita perder secciones por drift).
+export const MANAGED_HEADINGS = new Set([
+  'Memoria de sesion', 'Contexto del proyecto (auto-detectado)', 'Idioma y tono', 'Modelo',
+  'Plan first (cambios grandes)', '/compact disciplinado', 'Herramientas', 'Subagentes',
+  'Superpowers (workflow del main thread)', 'Diseno visual (workflow)',
+  'Skills de proyecto (en .claude/skills/)', 'Notas adicionales del proyecto',
+  'Reglas del usuario (user-rules.md de init-claude)', 'Skills custom (auto-recomendacion)',
+  'Git y commits (REGLAS ESTRICTAS)', 'Codigo', 'Tests', 'Definition of done',
+  'Errores en sesion', 'Dependencias', 'Secretos', 'Operaciones destructivas', 'Que NO hacer',
+]);
+
+// Secciones '## ' añadidas a mano por el usuario (no del template, fuera de CUSTOM).
+export function extractUserSections(text: string): string[] {
+  if (!text) return [];
+  const noCustom = text.replace(/<!-- CUSTOM:START -->[\s\S]*?<!-- CUSTOM:END -->/g, '');
+  const out: string[] = [];
+  for (const part of noCustom.split(/\n(?=## )/)) {
+    const m = part.match(/^## (.+?)\s*$/m);
+    if (!m) continue;
+    if (MANAGED_HEADINGS.has(m[1]!.trim())) continue;
+    const trimmed = part.trim();
+    if (trimmed) out.push(trimmed);
+  }
+  return out;
+}
+
+// Backup con historial: `.bak` (ultimo) + uno con timestamp. Poda a `keep` recientes.
+export function rotateBackups(path: string, keep = 5): void {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  copyFileSync(path, `${path}.bak`);
+  copyFileSync(path, `${path}.${stamp}.bak`);
+  const dir = dirname(path), base = basename(path);
+  const hist = readdirSync(dir)
+    .filter((f) => f.startsWith(base + '.') && f.endsWith('.bak') && f !== base + '.bak')
+    .sort();
+  for (const f of hist.slice(0, Math.max(0, hist.length - keep))) {
+    try { rmSync(join(dir, f)); } catch { /* ya borrado */ }
+  }
+}
+
 // Escribe solo si no existe o lleva nuestra firma. No machaca personalizaciones.
-export function writeManaged(path, content) {
+export function writeManaged(path: string, content: string): 'CREATED' | 'SKIPPED' {
   if (existsSync(path)) {
     const ex = readFileSync(path, 'utf8');
     if (!ex.includes(SIGNATURE)) return 'SKIPPED';
@@ -61,29 +102,30 @@ export function writeManaged(path, content) {
   return 'CREATED';
 }
 
-// Claude Code discovers skills as .claude/skills/<name>/SKILL.md (dir + frontmatter).
-// Flat .md files in skills/ are ignored by the runtime.
-export function writeSkill(baseDir, skillName, content) {
-  const dest = join(baseDir, '.claude', 'skills', skillName, 'SKILL.md');
+export function writeSkill(baseDir: string, skillName: string, content: string) {
+  // Sanea el nombre: viene de skills remotas (frontmatter/URL). Evita que `../` o
+  // separadores escriban fuera de .claude/skills.
+  const safe = skillName.replace(/[^\w.-]/g, '-').replace(/^[.-]+/, '') || 'skill';
+  const dest = join(baseDir, '.claude', 'skills', safe, 'SKILL.md');
   return writeManaged(dest, content);
 }
 
-export function copySkillToProject(skillId, projectDir) {
+export function copySkillToProject(skillId: string, projectDir: string): string {
   const src = join(CATALOG_DIR, 'skills', `${skillId}.md`);
   if (!existsSync(src)) return 'MISSING';
   return writeSkill(projectDir, skillId, readFileSync(src, 'utf8'));
 }
 
-export function copySkillToUser(skillId) {
+export function copySkillToUser(skillId: string): string {
   const src = join(CATALOG_DIR, 'skills', `${skillId}.md`);
   if (!existsSync(src)) return 'MISSING';
   return writeSkill(homedir(), skillId, readFileSync(src, 'utf8'));
 }
 
-export function installAgents(withDesigner) {
+export function installAgents(withDesigner: boolean): Record<string, string> {
   const agentsDir = join(CATALOG_DIR, 'agents');
   const destDir = join(homedir(), '.claude', 'agents');
-  const results = {};
+  const results: Record<string, string> = {};
   if (!existsSync(agentsDir)) return results;
   for (const f of readdirSync(agentsDir)) {
     const name = f.replace(/\.md$/, '');
@@ -93,10 +135,10 @@ export function installAgents(withDesigner) {
   return results;
 }
 
-export function installCommands() {
+export function installCommands(): Record<string, string> {
   const cmdsDir = join(CATALOG_DIR, 'commands');
   const destDir = join(homedir(), '.claude', 'commands');
-  const results = {};
+  const results: Record<string, string> = {};
   if (!existsSync(cmdsDir)) return results;
   for (const f of readdirSync(cmdsDir)) {
     results[f.replace(/\.md$/, '')] = writeManaged(join(destDir, f), readFileSync(join(cmdsDir, f), 'utf8'));
@@ -104,14 +146,32 @@ export function installCommands() {
   return results;
 }
 
-export function generateClaudeMd(projectDir, selectedComps, projectSkills, hasSuperpowers, extraContent, profile = null) {
-  const toolLines = selectedComps.map(c => c.claudemd).filter(Boolean).join('\n');
-  const sections = selectedComps.map(c => c.claudemdSection).filter(Boolean).join('\n\n');
-  const selectedIds = new Set(selectedComps.map(c => c.id));
+export function generateClaudeMd(
+  projectDir: string,
+  selectedComps: Component[],
+  projectSkills: string[],
+  hasSuperpowers: boolean,
+  extraContent: string | null,
+  profile: Profile | null = null,
+  toolSearchOn = false,
+): 'CREATED' | 'UPDATED' {
+  // Con Tool Search activo, los componentes 'discovery' se consolidan en un indice
+  // (Claude los descubre por busqueda); los de policy/protocolo mantienen su linea.
+  const policyLines: string[] = [], discovery: string[] = [];
+  for (const c of selectedComps) {
+    if (!c.claudemd) continue;
+    if (toolSearchOn && c.docTier === 'discovery') discovery.push(c.mcp?.name ?? c.id);
+    else policyLines.push(c.claudemd);
+  }
+  if (discovery.length)
+    policyLines.push(`- Tools instaladas (descúbrelas por búsqueda de tools según la tarea): ${discovery.join(', ')}.`);
+  const toolLines = policyLines.join('\n');
+  const sections = selectedComps.map((c) => c.claudemdSection).filter(Boolean).join('\n\n');
+  const selectedIds = new Set(selectedComps.map((c) => c.id));
   const hasDesignTools = selectedIds.has('pencil') || selectedIds.has('figma');
 
   const projSkillsSection = projectSkills.length
-    ? `\n## Skills de proyecto (en .claude/skills/)\n\nAplica estos skills cuando la tarea lo toque:\n${projectSkills.map(s => `- \`${s}\``).join('\n')}`
+    ? `\n## Skills de proyecto (en .claude/skills/)\n\nAplica estos skills cuando la tarea lo toque:\n${projectSkills.map((s) => `- \`${s}\``).join('\n')}`
     : '';
 
   const spSection = hasSuperpowers ? `
@@ -125,7 +185,18 @@ export function generateClaudeMd(projectDir, selectedComps, projectSkills, hasSu
 - Code review: \`superpowers:requesting-code-review\` + subagente \`code-reviewer\`.
 - NO uses \`superpowers:using-git-worktrees\` salvo peticion explicita.` : '';
 
-  const custom = getCustomBlock(join(projectDir, 'CLAUDE.md'));
+  // Preserva personalizaciones: bloque CUSTOM + secciones '## ' añadidas fuera de el
+  // (estas se migran DENTRO de CUSTOM para no perderlas en la proxima regen).
+  const claudeMdPath = join(projectDir, 'CLAUDE.md');
+  const oldText = existsSync(claudeMdPath) ? readFileSync(claudeMdPath, 'utf8') : '';
+  const userSections = extractUserSections(oldText);
+  let custom = getCustomBlock(claudeMdPath);
+  if (userSections.length) {
+    const migrated = `<!-- init-claude migro estas secciones (estaban fuera de CUSTOM) para no perderlas -->\n\n${userSections.join('\n\n')}`;
+    custom = custom
+      ? custom.replace('<!-- CUSTOM:END -->', `\n${migrated}\n<!-- CUSTOM:END -->`)
+      : `\n<!-- CUSTOM:START -->\n\n${migrated}\n\n<!-- CUSTOM:END -->`;
+  }
   const extra = extraContent ? `\n## Notas adicionales del proyecto\n\n${extraContent}\n` : '';
 
   const userRules = getUserRules();
@@ -149,6 +220,7 @@ export function generateClaudeMd(projectDir, selectedComps, projectSkills, hasSu
 ${selectedIds.has('figma') ? '- Figma a codigo: skill `figma-to-code`.\n' : ''}${selectedIds.has('pencil') ? '- Pencil a codigo: skill `pencil-to-code`.\n' : ''}` : '';
 
   const md = `# CLAUDE.md
+<!-- ${SIGNATURE} · lo editado fuera del bloque CUSTOM se regenera; pon tus reglas en CUSTOM -->
 
 Reglas de comportamiento. Reglas propias del proyecto: bloque CUSTOM al final (sobrevive regeneraciones).
 
@@ -251,58 +323,58 @@ migraciones DB, borrado sin refs, cambios >10 archivos.
 ${custom}
 `;
 
-  const path = join(projectDir, 'CLAUDE.md');
+  const path = claudeMdPath;
   const existed = existsSync(path);
-  if (existed) copyFileSync(path, path + '.bak');
+  if (existed) rotateBackups(path);
   writeCRLF(path, md);
   return existed ? 'UPDATED' : 'CREATED';
 }
 
-export function generateProjectSettings(projectDir) {
+export function generateProjectSettings(projectDir: string): 'PRESENT' | 'CREATED' {
   const path = join(projectDir, '.claude', 'settings.json');
   if (existsSync(path)) return 'PRESENT';
   mkdirSync(dirname(path), { recursive: true });
   const settings = {
     permissions: {
       deny: [
-        "Read(.env)","Read(.env.*)","Read(**/.env)","Read(**/.env.*)",
-        "Read(**/secrets/**)","Read(**/*credentials*)","Read(**/*.pem)","Read(**/*.key)","Read(**/*.p12)",
-        "Read(**/id_rsa*)","Read(**/id_ed25519*)","Read(**/.aws/**)","Read(**/.ssh/**)","Read(**/.gnupg/**)",
-        "Read(**/node_modules/**)","Read(**/.git/objects/**)","Read(**/dist/**)","Read(**/build/**)","Read(**/out/**)",
-        "Read(**/.next/**)","Read(**/.nuxt/**)","Read(**/.svelte-kit/**)","Read(**/.cache/**)","Read(**/coverage/**)",
-        "Read(**/__pycache__/**)","Read(**/.pytest_cache/**)","Read(**/.venv/**)","Read(**/venv/**)",
-        "Read(**/target/**)","Read(**/vendor/**)","Read(**/*.lock)","Read(**/*.lockb)",
-        "Read(**/package-lock.json)","Read(**/yarn.lock)","Read(**/pnpm-lock.yaml)","Read(**/poetry.lock)",
-        "Read(**/*.log)","Read(**/logs/**)","Read(**/*.sqlite)","Read(**/*.sqlite3)","Read(**/*.db)",
-        "Read(**/*.min.js)","Read(**/*.min.css)","Read(**/*.map)",
-        "Bash(rm -rf /*)","Bash(rm -rf ~)","Bash(sudo *)",
-        "Bash(curl * | sh)","Bash(curl * | bash)","Bash(wget * | sh)",
-        "Bash(git push --force *)","Bash(git push -f *)","Bash(git reset --hard *)","Bash(git clean -fdx*)",
-        "Bash(dd *)","Bash(mkfs.*)","Bash(format *)"
+        "Read(.env)", "Read(.env.*)", "Read(**/.env)", "Read(**/.env.*)",
+        "Read(**/secrets/**)", "Read(**/*credentials*)", "Read(**/*.pem)", "Read(**/*.key)", "Read(**/*.p12)",
+        "Read(**/id_rsa*)", "Read(**/id_ed25519*)", "Read(**/.aws/**)", "Read(**/.ssh/**)", "Read(**/.gnupg/**)",
+        "Read(**/node_modules/**)", "Read(**/.git/objects/**)", "Read(**/dist/**)", "Read(**/build/**)", "Read(**/out/**)",
+        "Read(**/.next/**)", "Read(**/.nuxt/**)", "Read(**/.svelte-kit/**)", "Read(**/.cache/**)", "Read(**/coverage/**)",
+        "Read(**/__pycache__/**)", "Read(**/.pytest_cache/**)", "Read(**/.venv/**)", "Read(**/venv/**)",
+        "Read(**/target/**)", "Read(**/vendor/**)", "Read(**/*.lock)", "Read(**/*.lockb)",
+        "Read(**/package-lock.json)", "Read(**/yarn.lock)", "Read(**/pnpm-lock.yaml)", "Read(**/poetry.lock)",
+        "Read(**/*.log)", "Read(**/logs/**)", "Read(**/*.sqlite)", "Read(**/*.sqlite3)", "Read(**/*.db)",
+        "Read(**/*.min.js)", "Read(**/*.min.css)", "Read(**/*.map)",
+        "Bash(rm -rf /*)", "Bash(rm -rf ~)", "Bash(sudo *)",
+        "Bash(curl * | sh)", "Bash(curl * | bash)", "Bash(wget * | sh)",
+        "Bash(git push --force *)", "Bash(git push -f *)", "Bash(git reset --hard *)", "Bash(git clean -fdx*)",
+        "Bash(dd *)", "Bash(mkfs.*)", "Bash(format *)",
       ],
       allow: [
-        "Bash(git:*)","Bash(npm:*)","Bash(pnpm:*)","Bash(yarn:*)","Bash(node:*)",
-        "Bash(python:*)","Bash(pip:*)","Bash(pipx:*)","Bash(pytest:*)","Bash(ruff:*)",
-        "Bash(eslint:*)","Bash(tsc:*)","Bash(prettier:*)","Bash(vitest:*)","Bash(jest:*)",
-        "Bash(cargo:*)","Bash(go:*)","Bash(make:*)"
-      ]
-    }
+        "Bash(git:*)", "Bash(npm:*)", "Bash(pnpm:*)", "Bash(yarn:*)", "Bash(node:*)",
+        "Bash(python:*)", "Bash(pip:*)", "Bash(pipx:*)", "Bash(pytest:*)", "Bash(ruff:*)",
+        "Bash(eslint:*)", "Bash(tsc:*)", "Bash(prettier:*)", "Bash(vitest:*)", "Bash(jest:*)",
+        "Bash(cargo:*)", "Bash(go:*)", "Bash(make:*)",
+      ],
+    },
   };
   writeCRLF(path, JSON.stringify(settings, null, 2));
   return 'CREATED';
 }
 
-export function updateGitignore(projectDir) {
+export function updateGitignore(projectDir: string): string {
   const path = join(projectDir, '.gitignore');
-  const entries = ['.context-mode/','.code-review-graph/','CLAUDE.md.bak','.serena/','.swarm/','.claude-flow/','.claude/init-snapshot.json','settings.json.bak'];
+  const entries = ['.context-mode/', '.code-review-graph/', 'CLAUDE.md.bak', 'CLAUDE.md.*.bak', '.serena/', '.codebase-memory/', '.claude/init-snapshot.json', 'settings.json.bak'];
   const existing = existsSync(path) ? readFileSync(path, 'utf8') : '';
-  const added = entries.filter(e => !existing.includes(e));
+  const added = entries.filter((e) => !existing.includes(e));
   if (!added.length) return 'PRESENT';
   writeFileSync(path, existing + '\n# Claude Code tooling\n' + added.join('\n') + '\n');
   return `UPDATED (${added.length})`;
 }
 
-export function installGitHooks(projectDir, hasHusky) {
+export function installGitHooks(projectDir: string, hasHusky: boolean): string {
   if (!existsSync(join(projectDir, '.git'))) return 'SKIPPED (sin .git)';
   const hook = `#!/bin/sh
 # ${SIGNATURE}
@@ -317,7 +389,7 @@ exit 0
 `;
   const targets = [join(projectDir, '.git', 'hooks', 'commit-msg')];
   if (hasHusky && existsSync(join(projectDir, '.husky'))) targets.push(join(projectDir, '.husky', 'commit-msg'));
-  const done = [];
+  const done: string[] = [];
   for (const t of targets) {
     if (existsSync(t) && !readFileSync(t, 'utf8').includes(SIGNATURE)) { done.push('otro hook, no tocado'); continue; }
     mkdirSync(dirname(t), { recursive: true });
@@ -327,8 +399,15 @@ exit 0
   return `INSTALLED (${done.join(', ')})`;
 }
 
-export function saveSnapshot(projectDir, selected) {
+export function saveSnapshot(projectDir: string, selected: { components: string[]; skills: string[] }): void {
   const path = join(projectDir, '.claude', 'init-snapshot.json');
   mkdirSync(dirname(path), { recursive: true });
   writeCRLF(path, JSON.stringify({ version: 'v13', date: new Date().toISOString(), selected }, null, 2));
+}
+
+// Lee el snapshot anterior para diffear contra la seleccion actual (prune).
+export function loadSnapshot(projectDir: string): Snapshot | null {
+  const path = join(projectDir, '.claude', 'init-snapshot.json');
+  if (!existsSync(path)) return null;
+  try { return JSON.parse(readFileSync(path, 'utf8')) as Snapshot; } catch { return null; }
 }

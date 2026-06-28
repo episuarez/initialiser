@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" viewBox="0 0 900 470" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#58a6ff"/>
+      <stop offset="1" stop-color="#a371f7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="470" rx="14" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="899" height="469" rx="14" fill="none" stroke="#30363d"/>
+
+  <!-- window chrome -->
+  <circle cx="28" cy="28" r="6" fill="#ff5f56"/>
+  <circle cx="48" cy="28" r="6" fill="#ffbd2e"/>
+  <circle cx="68" cy="28" r="6" fill="#27c93f"/>
+  <text x="450" y="32" text-anchor="middle" fill="#8b949e" font-size="13">init-claude — Claude Code, set up right</text>
+
+  <line x1="0" y1="52" x2="900" y2="52" stroke="#30363d"/>
+
+  <!-- title -->
+  <text x="40" y="104" fill="#e6edf3" font-size="34" font-weight="700">init-claude</text>
+  <text x="40" y="138" fill="#8b949e" font-size="17">One command. Detects your stack, installs the right</text>
+  <text x="40" y="162" fill="#8b949e" font-size="17">tools &amp; skills, writes <tspan fill="#58a6ff">CLAUDE.md</tspan> — token-optimized by default.</text>
+
+  <!-- prompt line -->
+  <text x="40" y="205" font-size="17"><tspan fill="#27c93f">$</tspan> <tspan fill="#e6edf3">init-claude</tspan><tspan fill="#58a6ff"> ▍</tspan></text>
+
+  <!-- stat cards -->
+  <g>
+    <rect x="40" y="232" width="250" height="86" rx="10" fill="#161b22" stroke="#30363d"/>
+    <text x="58" y="270" fill="url(#accent)" font-size="30" font-weight="700">98%</text>
+    <text x="58" y="296" fill="#8b949e" font-size="13">fewer tokens on big</text>
+    <text x="58" y="312" fill="#8b949e" font-size="13">tool outputs (context-mode)</text>
+  </g>
+  <g>
+    <rect x="325" y="232" width="250" height="86" rx="10" fill="#161b22" stroke="#30363d"/>
+    <text x="343" y="270" fill="url(#accent)" font-size="30" font-weight="700">60–90%</text>
+    <text x="343" y="296" fill="#8b949e" font-size="13">smaller Bash output</text>
+    <text x="343" y="312" fill="#8b949e" font-size="13">(RTK on git/npm/tests)</text>
+  </g>
+  <g>
+    <rect x="610" y="232" width="250" height="86" rx="10" fill="#161b22" stroke="#30363d"/>
+    <text x="628" y="270" fill="url(#accent)" font-size="30" font-weight="700">85–95%</text>
+    <text x="628" y="296" fill="#8b949e" font-size="13">less MCP overhead</text>
+    <text x="628" y="312" fill="#8b949e" font-size="13">(Tool Search aware)</text>
+  </g>
+
+  <!-- feature row -->
+  <g fill="#c9d1d9" font-size="14.5">
+    <text x="40" y="362">✓ 26 curated skills, gated per-stack</text>
+    <text x="40" y="388">✓ Layered memory: session · project · durable</text>
+    <text x="40" y="414">✓ Per-project MCPs, safe prune, nothing lost</text>
+    <text x="470" y="362">✓ TypeScript, zod-validated catalog</text>
+    <text x="470" y="388">✓ ast-grep, structural search &amp; codemods</text>
+    <text x="470" y="414">✓ Preserves your rules across regenerations</text>
+  </g>
+
+  <line x1="0" y1="436" x2="900" y2="436" stroke="#30363d"/>
+  <text x="40" y="458" fill="#6e7681" font-size="12.5">npm install -g @episuarez/init-claude  ·  then  init-claude  in any project</text>
+</svg>

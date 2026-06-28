@@ -2,6 +2,36 @@
 
 All notable changes to init-claude are documented here.
 
+## [1.2.0] — 2026-06-29
+
+### Added
+- **TypeScript** — full migration of `src/` and `bin/` to strict TypeScript, bundled with `tsup` to a committed `dist/`. New zod-validated catalog schema (`src/catalog.ts`) with inferred `Component` types, shared types in `src/types.ts`, and the wizard split into `src/commands/` (`wizard`, `check`, `suggest`, `migrate`). Tests migrated to **Vitest**.
+- **Layered memory** — new **Memory** wizard step with levels: *Basic* always-on (`context-mode` = session + `CLAUDE.md` CUSTOM = project/shared), opt-in *Durable* (`Obsidian`) and *Semantic* (`basic-memory`). `init-claude migrate-memory <src> <dst>` copies markdown between durable stores — additive, never overwrites or deletes the source.
+- **`ast-grep` (sg)** component — structural AST search and codemods; returns exact nodes instead of whole-file grep dumps (big token saver on refactors/audits).
+- **19 new project skills** (26 total, gated per-stack): `typescript-quality`, `go-quality`, `rust-quality`, `accessibility-wcag`, `react-performance`, `database-schema`, `auth-security`, `tdd-unit-testing`, `error-handling`, `secure-coding`, `refactoring-safe`, `git-commit-hygiene`, `dependency-hygiene`, `observability-logging`, `performance-profiling`, `docker-optimization`, `ci-cd-pipelines`, `llm-integration`, `documentation-writing` — plus two always-on skills, `token-efficiency` and `memory-discipline`.
+- **`docker` and `ai` profile tags** — Dockerfile/compose → `docker`; `openai`/`anthropic`/`langchain`/`transformers`… deps → `ai`. Gate the new infra/AI skills.
+- **Per-project MCP scope** (`-s local`) and **prune** — deselecting an installed MCP on a re-run uninstalls it from *that project only* (additive, confirmed; never touches other projects or global binaries).
+- Vault path **validation** (`validate: "dir"`) — rejects non-existent paths and warns when a folder has no `.obsidian`.
+- Per-component install **timing** in the summary, with slow steps highlighted.
+- `[ya instalado]` markers on already-present components, and conflict detection against already-installed tools.
+
+### Changed
+- **Minimal token-optimal baseline (Lean-4):** core is now `context-mode` + `RTK` + `context7` + the always-on `token-efficiency` skill. `sequential-thinking` demoted to opt-in (no token saving). Everything else is opt-in — alternatives only if you want them.
+- **MCP Tool Search cost model:** with Tool Search on, an MCP's tool count no longer counts as context weight (schemas load on demand), so heavy MCPs (`serena`, `playwright`) are no longer penalized. `toolSearchState` reworked to the real **threshold** model — `ENABLE_TOOL_SEARCH=off|on|auto:N` (default `auto:10%`), not a version gate.
+- **Generated `CLAUDE.md`:** discovery-only tool docs consolidated into a single index line under Tool Search; **user-added `##` sections outside the CUSTOM block are now preserved** (migrated into CUSTOM) across regenerations; **timestamped rotating backups** replace the single overwritten `.bak`.
+- **Wizard UX:** the "what it is / what it does" description leads every choice; **ESC goes back** a step (instead of cancelling) in step-by-step mode; the conflict selector pre-selects a recommended option and shows full descriptions; progress bars / elapsed-second tickers on every wait.
+- **Distribution:** `dist/` is committed and CI verifies it is in sync; the git-clone flow stays build-free for users (`npm install --omit=dev` + run `dist/`). `.gitattributes` forces LF on `dist/` and `esbuild` is pinned for reproducible bundles.
+- **Repo hygiene:** demo GIF optimized 7.8 MB → 1.2 MB; `.gitignore` consolidated; `docs/` (personal notes) excluded from the repo.
+
+### Fixed
+- **~20s wizard freeze** — `claude mcp list` (which health-checks every server, ~20s, blocking the event loop) replaced by reading MCP names directly from `~/.claude.json` / `.mcp.json` (~2 ms).
+- **Generated `CLAUDE.md` now carries its init-claude signature** — previously the file lacked the marker the wizard checks, so on every re-run it was treated as hand-written and the tool refused to regenerate it (and the doctor mislabeled it). Re-runs now update it correctly.
+- Remote skill **names are sanitized** before being written to `.claude/skills/` (no path traversal).
+- `TIMEOUT` now counts as a component **failure** in the summary (no longer reported as both success and failure).
+- pipx `post` / `also` steps run **only on a successful install** (not when already present or after a failure).
+- Conflict resolution now also considers **already-installed** tools (no more `serena` + `codebase-memory-mcp` both registered).
+- Already-installed components are no longer silently re-offered or re-processed in step-by-step mode.
+
 ## [1.1.0] — 2026-06-22
 
 ### Added

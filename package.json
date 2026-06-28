@@ -1,10 +1,20 @@
 {
   "name": "@episuarez/init-claude",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "One command to configure Claude Code for any project: detects stack, installs MCPs, writes CLAUDE.md.",
   "type": "module",
   "bin": {
-    "init-claude": "bin/init-claude.mjs"
+    "init-claude": "dist/init-claude.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:dist": "tsup && git diff --exit-code dist",
+    "build:readme": "node scripts/gen-readme.mjs",
+    "check:readme": "node scripts/gen-readme.mjs && git diff --exit-code README.md",
+    "prepare": "husky",
+    "prepublishOnly": "tsup"
   },
   "engines": {
     "node": ">=18"
@@ -30,14 +40,28 @@
     "url": "https://github.com/episuarez/initialiser/issues"
   },
   "files": [
-    "bin/",
-    "src/",
+    "dist/",
     "catalog/",
     "README.md",
     "LICENSE"
   ],
   "dependencies": {
     "@clack/prompts": "^0.7.0",
-    "picocolors": "^1.0.0"
+    "picocolors": "^1.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true
+  },
+  "overrides": {
+    "esbuild": "0.27.7"
   }
 }

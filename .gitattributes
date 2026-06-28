@@ -1,0 +1,4 @@
+# El dist/ se commitea y CI lo reconstruye para comprobar que esta en sync
+# (check:dist). esbuild emite LF; forzamos LF aqui para que un commit desde
+# Windows y el rebuild de CI (Linux) coincidan byte-a-byte y no haya falso diff.
+dist/** text eol=lf

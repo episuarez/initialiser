@@ -16,8 +16,8 @@
       "id": "sequential-thinking",
       "name": "sequential-thinking",
       "group": "Core",
-      "tier": "core",
-      "desc": "Razonamiento estructurado para diseno/arquitectura. 1 tool, overhead minimo.",
+      "tier": "available",
+      "desc": "Razonamiento estructurado para diseno/arquitectura. 1 tool. Opt-in (no ahorra tokens; añadelo si haces diseno no trivial).",
       "install": null,
       "mcp": { "name": "sequential-thinking", "cmd": "npx -y @modelcontextprotocol/server-sequential-thinking" },
       "claudemd": "- `sequential-thinking`: diseno o arquitectura no trivial."
@@ -43,6 +43,17 @@
       "claudemd": "- `rtk`: prefijo OBLIGATORIO en comandos Bash verbosos (git/npm/cargo/jest/pytest). Ej: rtk git status."
     },
     {
+      "id": "ast-grep",
+      "name": "ast-grep (sg)",
+      "group": "Analisis",
+      "tier": "suggested",
+      "desc": "Busqueda y reescritura estructural por AST: refactors/auditorias multi-archivo con nodos exactos (mucho menos tokens que grep). CLI, 0 MCP tools.",
+      "recommendIf": ["sizable"],
+      "install": { "type": "npm", "pkg": "@ast-grep/cli", "bin": "ast-grep" },
+      "mcp": null,
+      "claudemd": "- `ast-grep` (sg): busqueda/reescritura estructural por AST. Refactors y auditorias multi-archivo: `ast-grep -p '<patron>'` devuelve nodos exactos (menos tokens que grep). Codemods: `ast-grep -p ... -r ...`."
+    },
+    {
       "id": "autoskills",
       "name": "autoskills",
       "group": "Skills",
@@ -61,7 +72,9 @@
       "desc": "Grafo del codebase: impacto de cambios, busqueda. Util con 50+ archivos.",
       "recommendIf": ["sizable"],
       "install": { "type": "pipx", "pkg": "code-review-graph", "post": "code-review-graph install --platform claude-code" },
+      "conflictsWith": ["serena", "codebase-memory-mcp"],
       "mcp": null,
+      "docTier": "discovery",
       "claudemd": "- `code-review-graph`: impacto de cambios multi-archivo (get_impact_radius_tool, detect_changes_tool, query_graph_tool)."
     },
     {
@@ -74,7 +87,9 @@
       "requireTags": ["sizable"],
       "install": null,
       "requires": ["uv"],
+      "conflictsWith": ["code-review-graph", "codebase-memory-mcp"],
       "mcp": { "name": "serena", "cmd": "uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant" },
+      "docTier": "discovery",
       "claudemd": "- `serena`: busqueda semantica y go-to-definition precisa."
     },
     {
@@ -86,31 +101,8 @@
       "recommendIf": ["frontend", "e2e"],
       "install": null,
       "mcp": { "name": "playwright", "cmd": "npx -y @playwright/mcp" },
+      "docTier": "discovery",
       "claudemd": "- `playwright`: browser automation, scraping, E2E."
-    },
-    {
-      "id": "claude-flow",
-      "name": "claude-flow",
-      "group": "Orquestacion",
-      "tier": "available",
-      "desc": "Swarm/hive-mind multi-agente. POTENTE pero +87 tools de overhead: opt-in consciente.",
-      "recommendIf": [],
-      "recommendIfToolSearch": ["large", "monorepo"],
-      "install": { "type": "npm", "pkg": "claude-flow@alpha", "bin": "claude-flow" },
-      "mcp": { "name": "claude-flow", "cmd": "npx claude-flow@alpha mcp start" },
-      "claudemd": "- `claude-flow`: swarm/hive-mind para paralelizacion masiva. Solo si justifica el overhead."
-    },
-    {
-      "id": "superclaude",
-      "name": "SuperClaude",
-      "group": "Orquestacion",
-      "tier": "suggested",
-      "desc": "30 slash commands /sc:* de workflow (brainstorm, analyze, implement...).",
-      "recommendIf": ["sizable"],
-      "install": { "type": "pipx", "pkg": "SuperClaude", "post": "SuperClaude install --quiet" },
-      "mcp": null,
-      "claudemd": null,
-      "claudemdSection": "## SuperClaude\n\n/sc:brainstorm /sc:analyze /sc:implement /sc:research /sc:troubleshoot /sc:improve /sc:test /sc:document."
     },
     {
       "id": "husky",
@@ -132,6 +124,7 @@
       "recommendIf": ["docs"],
       "install": { "type": "pipx", "pkg": "markitdown[all]", "bin": "markitdown", "also": "markitdown-mcp" },
       "mcp": { "name": "markitdown", "cmd": "markitdown-mcp" },
+      "docTier": "discovery",
       "claudemd": "- `markitdown` (MCP): convierte PDF/Word/Excel/PPT/imagen/epub a Markdown antes de analizar."
     },
     {
@@ -162,19 +155,85 @@
       "name": "Figma Dev Mode",
       "group": "Diseno",
       "tier": "available",
-      "desc": "Lee disenos Figma (requiere Figma desktop + Dev seat de pago).",
+      "desc": "Lee disenos Figma. Modo desktop (Figma app + Dev seat) o token de acceso opcional.",
       "recommendIf": [],
       "install": null,
-      "mcp": { "name": "figma", "cmd": "npx -y @figma/mcp" },
+      "mcp": {
+        "name": "figma",
+        "cmd": "npx -y @figma/mcp",
+        "envPrompt": { "var": "FIGMA_ACCESS_TOKEN", "env": "FIGMA_ACCESS_TOKEN", "optional": true, "message": "Token de acceso de Figma (vacio = modo desktop/Dev Mode):", "placeholder": "figd_..." }
+      },
       "claudemd": "- `figma` (MCP): leer disenos Figma. Conversion a codigo: skill figma-to-code.",
       "userSkills": ["figma-to-code", "design-brief"]
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian (vault)",
+      "group": "Memoria",
+      "tier": "available",
+      "memoryLevel": "durable",
+      "desc": "Capa DURABLE: conocimiento persistente en tu vault Obsidian (notas, decisiones, research) via filesystem MCP. Pregunta la ruta del vault.",
+      "recommendIf": [],
+      "install": null,
+      "mcp": {
+        "name": "vault",
+        "cmd": "npx -y @modelcontextprotocol/server-filesystem",
+        "prompt": { "key": "vaultPath", "env": "OBSIDIAN_VAULT_PATH", "message": "Ruta de tu vault Obsidian (carpeta raiz del vault):", "placeholder": "C:/Users/tu-usuario/obsidian/mi-vault", "validate": "dir" }
+      },
+      "claudemd": "- `vault` (Obsidian, filesystem MCP): conocimiento persistente. Lee la nota antes de escribir (merge, no sobrescribir). Decisiones, bugs+causa raiz, research, resumenes de sesion."
+    },
+    {
+      "id": "basic-memory",
+      "name": "basic-memory",
+      "group": "Memoria",
+      "tier": "available",
+      "memoryLevel": "semantic",
+      "desc": "Capa SEMANTICA (avanzado): conocimiento durable en markdown con recall por significado/grafo (basic-memory). Requiere Python. Solo si acumulas muchas notas.",
+      "recommendIf": [],
+      "install": { "type": "pipx", "pkg": "basic-memory", "bin": "basic-memory" },
+      "mcp": { "name": "basic-memory", "cmd": "basic-memory mcp" },
+      "claudemd": "- `basic-memory` (MCP): conocimiento durable con recall semantico (markdown + grafo). Escribe decisiones/research; recupera por significado, no solo por nombre."
+    },
+    {
+      "id": "codebase-memory-mcp",
+      "name": "codebase-memory-mcp",
+      "group": "Analisis",
+      "tier": "available",
+      "desc": "Knowledge graph estructural del codigo (tree-sitter, 158 langs): trace_path, get_architecture, detect_changes, impact analysis. Binario C, indexa repos grandes en segundos, ~99% menos tokens que grep file-by-file. Descarga un binario externo.",
+      "recommendIf": ["sizable"],
+      "recommendIfToolSearch": ["large", "monorepo"],
+      "install": { "type": "installer", "bin": "codebase-memory-mcp", "shUrl": "https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh", "psUrl": "https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.ps1", "flags": "--skip-config" },
+      "conflictsWith": ["code-review-graph", "serena"],
+      "mcp": { "name": "codebase-memory-mcp", "cmd": "codebase-memory-mcp" },
+      "claudemd": "- `codebase-memory-mcp`: grafo estructural del codigo. Indexa el repo una vez (index_repository), luego trace_path/get_architecture/detect_changes/query_graph. Auto-sync tras indexar."
     }
   ],
   "projectSkills": [
+    { "id": "token-efficiency",    "desc": "Disciplina de tokens: ctx_search antes de re-leer, rtk, scoped reads, diffs, batch. SIEMPRE.", "always": true },
+    { "id": "memory-discipline",   "desc": "Memoria por capas: sesion (context-mode), proyecto (CLAUDE.md), durable (Obsidian). Que va donde.", "always": true },
+    { "id": "typescript-quality",  "desc": "TS estricto sin any: uniones discriminadas, narrowing, satisfies.", "recommendIf": ["javascript"] },
+    { "id": "python-quality",      "desc": "Python: type hints 3.10+, ruff, excepciones especificas, async.", "recommendIf": ["python"] },
+    { "id": "go-quality",          "desc": "Go idiomatico: error wrapping, context, concurrencia segura, -race.", "recommendIf": ["go"] },
+    { "id": "rust-quality",        "desc": "Rust seguro: Result/?, ownership sin clones, clippy, sin unwrap.", "recommendIf": ["rust"] },
     { "id": "frontend-components", "desc": "Patrones de componentes: 4 estados, accesibilidad WCAG, performance.", "recommendIf": ["frontend"] },
+    { "id": "accessibility-wcag",  "desc": "A11y WCAG 2.2 AA: HTML semantico, teclado, contraste, ARIA correcto.", "recommendIf": ["frontend"] },
+    { "id": "react-performance",   "desc": "Perf React: medir con Profiler, memo con criterio, virtualizar listas.", "recommendIf": ["frontend"] },
     { "id": "api-design",          "desc": "Convenciones REST: codigos, errores consistentes, validacion, paginacion.", "recommendIf": ["backend-node", "backend-python"] },
-    { "id": "unity-conventions",   "desc": "Unity/C#: lifecycle, serializacion, pooling, kiosk/totem.", "recommendIf": ["unity"] },
+    { "id": "database-schema",     "desc": "Esquema SQL: normalizar, indices por EXPLAIN, migraciones reversibles.", "recommendIf": ["backend-node", "backend-python"] },
+    { "id": "auth-security",       "desc": "Auth segura: argon2/bcrypt, cookies HttpOnly, authz por recurso, anti-IDOR.", "recommendIf": ["backend-node", "backend-python"] },
     { "id": "e2e-testing",         "desc": "E2E robusto: selectores por prioridad, sin sleeps, Page Objects.", "recommendIf": ["e2e"] },
-    { "id": "python-quality",      "desc": "Python: type hints 3.10+, ruff, excepciones especificas, async.", "recommendIf": ["python"] }
+    { "id": "tdd-unit-testing",    "desc": "Tests fiables y TDD: red/green/refactor, AAA, deterministas, sin flaky.", "recommendIf": ["tests"] },
+    { "id": "error-handling",      "desc": "Errores explicitos: falla ruidoso, tipados, sin catch vacios, libera recursos.", "recommendIf": ["javascript", "python", "go", "rust"] },
+    { "id": "secure-coding",       "desc": "Codigo seguro OWASP: valida entrada, parametriza, escapa salida, secretos fuera.", "recommendIf": ["backend-node", "backend-python", "javascript", "python"] },
+    { "id": "refactoring-safe",    "desc": "Refactor seguro: tests de caracterizacion, pasos pequeños, sin mezclar feature.", "recommendIf": ["sizable"] },
+    { "id": "git-commit-hygiene",  "desc": "Commits atomicos, conventional, porque-sobre-que; ramas y PRs limpios.", "recommendIf": ["git"] },
+    { "id": "dependency-hygiene",  "desc": "Deps sanas: lockfile, audit en CI, minimizar, supply chain, sin abandonware.", "recommendIf": ["javascript", "python"] },
+    { "id": "observability-logging","desc": "Logs estructurados, niveles con criterio, sin PII, trazas y metricas RED.", "recommendIf": ["backend-node", "backend-python"] },
+    { "id": "performance-profiling","desc": "Optimizar con medicion: profiler primero, algoritmo antes que micro, sin regresion.", "recommendIf": ["sizable"] },
+    { "id": "docker-optimization", "desc": "Imagenes Docker: multi-stage, cache de capas, no-root, pequeñas y seguras.", "recommendIf": ["docker"] },
+    { "id": "ci-cd-pipelines",     "desc": "CI/CD rapido y fiable: fail-fast, cache, gate de calidad, deploy reversible.", "recommendIf": ["ci"] },
+    { "id": "llm-integration",     "desc": "Integrar LLMs: salida validada, anti prompt-injection, coste/latencia, evals.", "recommendIf": ["ai"] },
+    { "id": "documentation-writing","desc": "Docs que se usan: quickstart copy-paste, el porque, ADRs, vivo en el repo.", "recommendIf": ["docs"] },
+    { "id": "unity-conventions",   "desc": "Unity/C#: lifecycle, serializacion, pooling, kiosk/totem.", "recommendIf": ["unity"] }
   ]
 }

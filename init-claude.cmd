@@ -8,4 +8,4 @@ if not exist "%APPDIR%node_modules" (
   call npm install --omit=dev --silent
   popd
 )
-node "%APPDIR%bin\init-claude.mjs" %*
+node "%APPDIR%dist\init-claude.js" %*

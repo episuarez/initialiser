@@ -16,15 +16,19 @@ config.json
 .last-update-check
 user-rules.md
 
-dist/
 .cache/
 
-# Claude Code tooling
+# Notas personales / referencia local: fuera del repo (pueden contener tokens)
+docs/
+
+# Tooling local de este repo (no se publica)
+.agents/
+.claude/
+
+# Claude Code tooling (los *.bak ya estan cubiertos arriba)
 .context-mode/
 .code-review-graph/
-CLAUDE.md.bak
+.codebase-memory/
 .serena/
 .swarm/
 .claude-flow/
-.claude/init-snapshot.json
-settings.json.bak
