@@ -7,6 +7,10 @@ All notable changes to init-claude are documented here.
 ### Added
 - **`headroom` component** — Apache-2.0 CLI (`pip`/`pipx install "headroom-ai[all]"`) that compresses logs/tool-outputs/RAG/files 60-95% before they reach the LLM. Added as a `core` tier component (install gated on Python being present), with a mandatory line in the always-on `token-efficiency` skill for anything that doesn't already go through `RTK`.
 
+### Fixed
+- **esbuild path-traversal advisory (GHSA, Windows dev-server arbitrary file read)** — bumped the pinned override from `0.27.7` to the patched `0.28.1`. The prior comment claiming "no upgrade path without downgrading tsup" was stale: `tsup@8.5.1` and `vitest@4.1.9` both build and test clean against `0.28.1`. `npm audit` now reports 0 vulnerabilities.
+- **Dependabot `all_versions_ignored` failure on the esbuild security job** — the blanket `ignore: esbuild` (no version range) blocked Dependabot from evaluating security advisories at all, not just routine bumps. Removed now that the override no longer needs an ignore rule.
+
 ## [1.2.0] — 2026-06-29
 
 ### Added

@@ -4,9 +4,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      # esbuild lo fijan transitivamente tsup y vitest a 0.27.7; el parche del
-      # advisory (0.28.1) no tiene path sin downgradear tsup. Ademas esbuild es
-      # devDep de build (no se publica) y el fallo del advisory es del dev-server
-      # de esbuild, que no usamos. Se ignora hasta que tsup/vitest suban esbuild.
-      - dependency-name: "esbuild"
