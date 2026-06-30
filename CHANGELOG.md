@@ -2,6 +2,11 @@
 
 All notable changes to init-claude are documented here.
 
+## [1.2.1] — 2026-06-30
+
+### Added
+- **`headroom` component** — Apache-2.0 CLI (`pip`/`pipx install "headroom-ai[all]"`) that compresses logs/tool-outputs/RAG/files 60-95% before they reach the LLM. Added as a `core` tier component (install gated on Python being present), with a mandatory line in the always-on `token-efficiency` skill for anything that doesn't already go through `RTK`.
+
 ## [1.2.0] — 2026-06-29
 
 ### Added

@@ -43,6 +43,16 @@
       "claudemd": "- `rtk`: prefijo OBLIGATORIO en comandos Bash verbosos (git/npm/cargo/jest/pytest). Ej: rtk git status."
     },
     {
+      "id": "headroom",
+      "name": "Headroom",
+      "group": "Core",
+      "tier": "core",
+      "desc": "Comprime logs/tool-outputs/RAG/codigo 60-95% antes de llegar al LLM. CLI via pipx (Python). Install solo si hay Python.",
+      "install": { "type": "pipx", "pkg": "headroom-ai[all]", "bin": "headroom" },
+      "mcp": null,
+      "claudemd": "- `headroom`: compresion OBLIGATORIA para logs/tool-outputs/RAG/ficheros grandes que no pasan por rtk. Ej: headroom compress, headroom proxy --port 8787."
+    },
+    {
       "id": "ast-grep",
       "name": "ast-grep (sg)",
       "group": "Analisis",
@@ -209,7 +219,7 @@
     }
   ],
   "projectSkills": [
-    { "id": "token-efficiency",    "desc": "Disciplina de tokens: ctx_search antes de re-leer, rtk, scoped reads, diffs, batch. SIEMPRE.", "always": true },
+    { "id": "token-efficiency",    "desc": "Disciplina de tokens: ctx_search antes de re-leer, rtk, headroom, scoped reads, diffs, batch. SIEMPRE.", "always": true },
     { "id": "memory-discipline",   "desc": "Memoria por capas: sesion (context-mode), proyecto (CLAUDE.md), durable (Obsidian). Que va donde.", "always": true },
     { "id": "typescript-quality",  "desc": "TS estricto sin any: uniones discriminadas, narrowing, satisfies.", "recommendIf": ["javascript"] },
     { "id": "python-quality",      "desc": "Python: type hints 3.10+, ruff, excepciones especificas, async.", "recommendIf": ["python"] },

@@ -1,6 +1,6 @@
 {
   "name": "@episuarez/init-claude",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "One command to configure Claude Code for any project: detects stack, installs MCPs, writes CLAUDE.md.",
   "type": "module",
   "bin": {

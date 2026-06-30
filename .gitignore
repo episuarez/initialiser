@@ -33,3 +33,9 @@ docs/
 .serena/
 .swarm/
 .claude-flow/
+
+# Claude Code tooling
+CLAUDE.md.bak
+CLAUDE.md.*.bak
+.claude/init-snapshot.json
+settings.json.bak

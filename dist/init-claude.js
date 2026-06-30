@@ -1644,7 +1644,7 @@ async function runWizard(ctx) {
     const sel2 = catalog.components.filter((c) => selectedIds.includes(c.id));
     const missing = [];
     if (sel2.some((c) => c.install?.type === "pipx") && !(hasCmd("python") && hasCmd("pipx")))
-      missing.push("Python + pipx (para code-review-graph / MarkItDown)");
+      missing.push("Python + pipx (para code-review-graph / MarkItDown / Headroom)");
     if (sel2.some((c) => c.requires?.includes("uv")) && !hasCmd("uv") && !hasCmd("pipx"))
       missing.push("uv o pipx (para serena)");
     if (selectedIds.includes("rtk") && !hasCmd("rtk") && !hasCmd("cargo"))

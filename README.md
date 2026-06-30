@@ -77,6 +77,7 @@ Scans your project (languages, frameworks, size, CI, docs, design files, Docker,
 | **sequential-thinking** | Core | Opt-in | Razonamiento estructurado para diseno/arquitectura. 1 tool. Opt-in (no ahorra tokens; añadelo si haces diseno no trivial). |
 | **context7** | Core | Core | Docs actualizadas de librerias (React, Next, FastAPI...). 2 tools, valor casi universal. |
 | **RTK (Rust Token Killer)** | Core | Core | Comprime outputs Bash 60-90% (git, npm, tests). 0 MCP tools. Install solo si hay Rust/cargo. |
+| **Headroom** | Core | Core | Comprime logs/tool-outputs/RAG/codigo 60-95% antes de llegar al LLM. CLI via pipx (Python). Install solo si hay Python. |
 | **ast-grep (sg)** | Analisis | Suggested | Busqueda y reescritura estructural por AST: refactors/auditorias multi-archivo con nodos exactos (mucho menos tokens que grep). CLI, 0 MCP tools. |
 | **autoskills** | Skills | Suggested | Auto-instala skills curadas segun tu stack (React, Next, Vue, Zod, Tailwind...) desde el registro auditado de autoskills, verificadas por SHA-256. Complementa las skills de proyecto. |
 | **code-review-graph** | Analisis | Suggested | Grafo del codebase: impacto de cambios, busqueda. Util con 50+ archivos. |
