@@ -291,7 +291,7 @@ export async function runWizard(ctx: CliCtx): Promise<void> {
       if (comp.mcp?.envPrompt) asks.push({ ...comp.mcp.envPrompt, store: comp.mcp.envPrompt.var });
       for (const a of asks) {
         const clean = (v: unknown) => String(v ?? '').replace(/["`\r\n]/g, '').trim();
-        const validate = a.validate === 'dir' ? (v: string) => {
+        const validate = a.validate === 'dir' ? (v: string | undefined) => {
           const sv = clean(v);
           if (!sv) return a.optional ? undefined : 'Requerido.';
           if (!existsSync(sv)) return `No existe esa ruta: ${sv}`;
